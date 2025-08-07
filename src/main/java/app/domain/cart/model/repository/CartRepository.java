@@ -10,5 +10,5 @@ import app.domain.cart.model.entity.Cart;
 
 @Repository
 public interface CartRepository extends JpaRepository<Cart, UUID> {
-	Optional<Cart> findByUser_UserId(Long userId);
+	Optional<Cart> findByUserId(Long userId);
 }

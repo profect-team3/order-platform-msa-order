@@ -78,7 +78,7 @@ public class CartService {
 
 	@Transactional(readOnly = true)
 	public String loadDbToRedis(Long userId) {
-		Cart cart = cartRepository.findByUser_UserId(userId)
+		Cart cart = cartRepository.findByUserId(userId)
 			.orElseThrow(() -> new GeneralException(ErrorStatus.CART_NOT_FOUND));
 
 		List<CartItem> cartItems = cartItemRepository.findByCart_CartId(cart.getCartId());
@@ -97,7 +97,7 @@ public class CartService {
 	public String syncRedisToDb(Long userId) {
 		List<RedisCartItem> redisItems = cartRedisService.getCartFromRedis(userId);
 
-		Cart cart = cartRepository.findByUser_UserId(userId)
+		Cart cart = cartRepository.findByUserId(userId)
 			.orElseThrow(() -> new GeneralException(ErrorStatus.CART_NOT_FOUND));
 
 		cartItemRepository.deleteByCart_CartId(cart.getCartId());
