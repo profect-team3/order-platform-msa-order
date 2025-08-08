@@ -32,8 +32,10 @@ public class CartItem extends BaseEntity {
 	@JoinColumn(name = "cart_id", nullable = false)
 	private Cart cart;
 
+	@Column(name="menu_id",nullable = false)
 	private UUID menuId;
 
+	@Column(name="store_id",nullable = false)
 	private UUID storeId;
 
 	@Column(nullable = false)
