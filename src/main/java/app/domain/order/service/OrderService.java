@@ -76,8 +76,7 @@ public class OrderService {
 		Long calculatedTotalPrice = cartItems.stream()
 			.mapToLong(item -> menuMap.get(item.getMenuId()).getPrice() * item.getQuantity())
 			.sum();
-
-		if (request.getTotalPrice() != calculatedTotalPrice) {
+		if (!calculatedTotalPrice.equals(request.getTotalPrice())) {
 			throw new GeneralException(OrderErrorStatus.ORDER_PRICE_MISMATCH);
 		}
 

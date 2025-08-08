@@ -31,7 +31,7 @@ public class InternalOrderController {
         return orderInfo;
     }
 
-    @PatchMapping("internal/order/{orderId}/status")
+    @PostMapping("internal/order/{orderId}/status")
     public void updateOrderStatus(@PathVariable UUID orderId, @RequestBody String orderStatus) {
         internalOrderService.updateOrderStatus(orderId, orderStatus);
     }

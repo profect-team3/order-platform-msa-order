@@ -13,7 +13,7 @@ public class InternalCartController {
 
 	private final CartService cartService;
 
-	@DeleteMapping("internal/order/cart")
+	@DeleteMapping("internal/order/cart/{userId}")
 	public void isOrderExists(@PathVariable Long userId) {
 		cartService.clearCartItems(userId);
 	}
