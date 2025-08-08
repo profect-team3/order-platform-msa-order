@@ -21,26 +21,24 @@ public class InternalPaymentController {
     private final InternalPaymentService internalPaymentService;
 
     @GetMapping("internal/order/{orderId}/exists")
-    public ResponseEntity<Boolean> isOrderExists(@PathVariable UUID orderId) {
+    public Boolean isOrderExists(@PathVariable UUID orderId) {
         Boolean exists = internalPaymentService.isOrderExists(orderId);
-        return ResponseEntity.ok(exists);
+        return exists;
     }
 
     @GetMapping("internal/order/{orderId}")
-    public ResponseEntity<OrderInfo> getOrderInfo(@PathVariable UUID orderId) {
+    public OrderInfo getOrderInfo(@PathVariable UUID orderId) {
         OrderInfo orderInfo = internalPaymentService.getOrderInfo(orderId);
-        return ResponseEntity.ok(orderInfo);
+        return orderInfo;
     }
 
     @PatchMapping("internal/order/{orderId}/status")
-    public ResponseEntity<Void> updateOrderStatus(@PathVariable UUID orderId, @RequestBody String orderStatus) {
+    public void updateOrderStatus(@PathVariable UUID orderId, @RequestBody String orderStatus) {
         internalPaymentService.updateOrderStatus(orderId, orderStatus);
-        return ResponseEntity.ok().build();
     }
 
     @PostMapping("internal/order/{orderId}/history")
-    public ResponseEntity<Void> addOrderHistory(@PathVariable UUID orderId, @RequestBody String orderState) {
+    public void addOrderHistory(@PathVariable UUID orderId, @RequestBody String orderState) {
         internalPaymentService.addHistory(orderId, orderState);
-        return ResponseEntity.ok().build();
     }
 }

@@ -21,7 +21,11 @@ public class InternalPaymentService {
     private final OrdersRepository ordersRepository;
 
     public Boolean isOrderExists(UUID orderId) {
-        return ordersRepository.existsById(orderId);
+        boolean exists = ordersRepository.existsById(orderId);
+        if (!exists) {
+            throw new GeneralException(ErrorStatus.ORDER_NOT_FOUND);
+        }
+        return true;
     }
 
     public OrderInfo getOrderInfo(UUID orderId) {
