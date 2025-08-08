@@ -16,7 +16,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class InternalPaymentService {
+public class InternalOrderService {
 
     private final OrdersRepository ordersRepository;
 
