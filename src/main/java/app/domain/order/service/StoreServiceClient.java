@@ -23,25 +23,25 @@ public class StoreServiceClient {
 
     private final RestTemplate restTemplate;
     
-    @Value("${store.service.url:http://localhost:8083}")
+    @Value("${store.service.url:http://localhost:8082}")
     private String storeServiceUrl;
 
     public boolean isStoreExists(UUID storeId) {
-        String url = storeServiceUrl + "/api/stores/" + storeId + "/exists";
-        
+        String url = storeServiceUrl + "/internal/store/" + storeId + "/exists";
+
         ResponseEntity<Boolean> response = restTemplate.getForEntity(url, Boolean.class);
         return Boolean.TRUE.equals(response.getBody());
     }
 
     public boolean isStoreOwner(Long userId, UUID storeId) {
-        String url = storeServiceUrl + "/api/stores/" + storeId + "/owner/" + userId;
+        String url = storeServiceUrl + "/internal/store/" + storeId + "/owner/" + userId;
         
         ResponseEntity<Boolean> response = restTemplate.getForEntity(url, Boolean.class);
         return Boolean.TRUE.equals(response.getBody());
     }
 
     public List<MenuInfo> getMenuInfoList(List<UUID> menuIds) {
-        String url = storeServiceUrl + "/api/menus/batch";
+        String url = storeServiceUrl + "/internal/menus/batch";
         
         try {
             ResponseEntity<List<MenuInfo>> response = restTemplate.exchange(
