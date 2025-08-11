@@ -17,7 +17,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import app.domain.cart.model.dto.RedisCartItem;
 import app.domain.cart.service.CartService;
-import app.domain.order.model.dto.MenuInfo;
+import app.domain.order.client.InternalStoreClient;
+import app.domain.order.model.dto.response.MenuInfoResponse;
 import app.domain.order.model.dto.request.CreateOrderRequest;
 import app.domain.order.model.dto.response.OrderDetailResponse;
 import app.domain.order.model.dto.response.UpdateOrderStatusResponse;
@@ -41,7 +42,7 @@ public class OrderService {
 	private final CartService cartService;
 	private final OrderDelayService orderDelayService;
 	private final ObjectMapper objectMapper;
-	private final StoreServiceClient storeServiceClient;
+	private final InternalStoreClient internalStoreClient;
 
 	@Transactional
 	public UUID createOrder(Long userId,CreateOrderRequest request) {
@@ -56,7 +57,7 @@ public class OrderService {
 			throw new GeneralException(OrderErrorStatus.ORDER_DIFFERENT_STORE);
 		}
 
-		if (!storeServiceClient.isStoreExists(storeId)) {
+		if (!internalStoreClient.isStoreExists(storeId)) {
 			throw new GeneralException(ErrorStatus.STORE_NOT_FOUND);
 		}
 
@@ -64,14 +65,14 @@ public class OrderService {
 			.map(RedisCartItem::getMenuId)
 			.toList();
 		
-		List<MenuInfo> menuInfoList = storeServiceClient.getMenuInfoList(menuIds);
+		List<MenuInfoResponse> menuInfoResponseList = internalStoreClient.getMenuInfoList(menuIds);
 		
-		if (menuInfoList.size() != menuIds.size()) {
+		if (menuInfoResponseList.size() != menuIds.size()) {
 			throw new GeneralException(ErrorStatus.MENU_NOT_FOUND);
 		}
 		
-		Map<UUID, MenuInfo> menuMap = menuInfoList.stream()
-			.collect(java.util.stream.Collectors.toMap(MenuInfo::getMenuId, menu -> menu));
+		Map<UUID, MenuInfoResponse> menuMap = menuInfoResponseList.stream()
+			.collect(java.util.stream.Collectors.toMap(MenuInfoResponse::getMenuId, menu -> menu));
 
 		Long calculatedTotalPrice = cartItems.stream()
 			.mapToLong(item -> menuMap.get(item.getMenuId()).getPrice() * item.getQuantity())
@@ -98,7 +99,7 @@ public class OrderService {
 		Orders savedOrder = ordersRepository.save(order);
 
 		for (RedisCartItem cartItem : cartItems) {
-			MenuInfo menu = menuMap.get(cartItem.getMenuId());
+			MenuInfoResponse menu = menuMap.get(cartItem.getMenuId());
 
 			OrderItem orderItem = OrderItem.builder()
 				.orders(savedOrder)
@@ -145,7 +146,7 @@ public class OrderService {
 	}
 
 	private void validateOwnerUpdate(Long userId, Orders order, OrderStatus newStatus) {
-		if (!storeServiceClient.isStoreOwner(userId, order.getStoreId())) {
+		if (!internalStoreClient.isStoreOwner(userId, order.getStoreId())) {
 			throw new GeneralException(OrderErrorStatus.ORDER_ACCESS_DENIED);
 		}
 

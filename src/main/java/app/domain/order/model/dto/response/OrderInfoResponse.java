@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class OrderInfo {
+public class OrderInfoResponse {
     private Long totalPrice;
     private String paymentMethod;
     private Boolean isRefundable;

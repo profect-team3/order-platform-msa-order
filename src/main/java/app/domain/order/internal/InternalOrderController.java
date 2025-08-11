@@ -1,16 +1,14 @@
-package app.domain.order;
+package app.domain.order.internal;
 
 import java.util.UUID;
 
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import app.domain.order.model.dto.response.OrderInfo;
-import app.domain.order.service.InternalOrderService;
+import app.domain.order.model.dto.response.OrderInfoResponse;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -26,9 +24,9 @@ public class InternalOrderController {
     }
 
     @GetMapping("internal/order/{orderId}")
-    public OrderInfo getOrderInfo(@PathVariable UUID orderId) {
-        OrderInfo orderInfo = internalOrderService.getOrderInfo(orderId);
-        return orderInfo;
+    public OrderInfoResponse getOrderInfo(@PathVariable UUID orderId) {
+        OrderInfoResponse orderInfoResponse = internalOrderService.getOrderInfo(orderId);
+        return orderInfoResponse;
     }
 
     @PostMapping("internal/order/{orderId}/status")

@@ -1,11 +1,10 @@
-package app.domain.order.model.dto;
+package app.domain.order.model.dto.response;
 
 import java.util.UUID;
 import lombok.Getter;
-import lombok.Setter;
 
 @Getter
-public class MenuInfo {
+public class MenuInfoResponse {
     private UUID menuId;
     private String name;
     private Long price;
