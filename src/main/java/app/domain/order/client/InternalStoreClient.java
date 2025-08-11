@@ -1,4 +1,4 @@
-package app.domain.order.service;
+package app.domain.order.client;
 
 import java.util.List;
 import java.util.UUID;
@@ -14,12 +14,12 @@ import org.springframework.web.client.RestTemplate;
 import app.global.apiPayload.code.status.ErrorStatus;
 import app.global.apiPayload.exception.GeneralException;
 
-import app.domain.order.model.dto.MenuInfo;
+import app.domain.order.model.dto.response.MenuInfoResponse;
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class StoreServiceClient {
+public class InternalStoreClient {
 
     private final RestTemplate restTemplate;
     
@@ -40,15 +40,15 @@ public class StoreServiceClient {
         return Boolean.TRUE.equals(response.getBody());
     }
 
-    public List<MenuInfo> getMenuInfoList(List<UUID> menuIds) {
+    public List<MenuInfoResponse> getMenuInfoList(List<UUID> menuIds) {
         String url = storeServiceUrl + "/internal/menus/batch";
         
         try {
-            ResponseEntity<List<MenuInfo>> response = restTemplate.exchange(
+            ResponseEntity<List<MenuInfoResponse>> response = restTemplate.exchange(
                 url,
                 HttpMethod.POST,
                 new org.springframework.http.HttpEntity<>(menuIds),
-                new ParameterizedTypeReference<List<MenuInfo>>() {}
+                new ParameterizedTypeReference<List<MenuInfoResponse>>() {}
             );
             
             return response.getBody();

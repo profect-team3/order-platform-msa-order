@@ -1,4 +1,4 @@
-package app.domain.order.service;
+package app.domain.order.internal;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -6,7 +6,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import app.domain.order.model.dto.response.OrderInfo;
+import app.domain.order.model.dto.response.OrderInfoResponse;
 import app.domain.order.model.entity.Orders;
 import app.domain.order.model.entity.enums.OrderStatus;
 import app.domain.order.model.repository.OrdersRepository;
@@ -28,11 +28,11 @@ public class InternalOrderService {
         return true;
     }
 
-    public OrderInfo getOrderInfo(UUID orderId) {
+    public OrderInfoResponse getOrderInfo(UUID orderId) {
         Orders order = ordersRepository.findById(orderId)
             .orElseThrow(() -> new GeneralException(ErrorStatus.ORDER_NOT_FOUND));
         
-        return new OrderInfo(
+        return new OrderInfoResponse(
             order.getTotalPrice(),
             order.getPaymentMethod().name(),
             order.isRefundable()
