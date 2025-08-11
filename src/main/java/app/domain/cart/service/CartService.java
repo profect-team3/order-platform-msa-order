@@ -107,6 +107,7 @@ public class CartService {
 					return CartItem.builder()
 						.cart(cart)
 						.menuId(item.getMenuId())
+						.storeId(item.getStoreId())
 						.quantity(item.getQuantity())
 						.build();
 				})
