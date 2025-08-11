@@ -66,11 +66,7 @@ public class OrderService {
 			.toList();
 		
 		List<MenuInfoResponse> menuInfoResponseList = internalStoreClient.getMenuInfoList(menuIds);
-		
-		if (menuInfoResponseList.size() != menuIds.size()) {
-			throw new GeneralException(ErrorStatus.MENU_NOT_FOUND);
-		}
-		
+
 		Map<UUID, MenuInfoResponse> menuMap = menuInfoResponseList.stream()
 			.collect(java.util.stream.Collectors.toMap(MenuInfoResponse::getMenuId, menu -> menu));
 
