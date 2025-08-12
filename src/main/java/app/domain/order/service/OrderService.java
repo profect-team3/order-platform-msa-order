@@ -8,8 +8,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -21,6 +23,7 @@ import app.domain.order.client.InternalStoreClient;
 import app.domain.order.model.dto.response.MenuInfoResponse;
 import app.domain.order.model.dto.request.CreateOrderRequest;
 import app.domain.order.model.dto.response.OrderDetailResponse;
+import app.domain.order.model.dto.response.OrderResponse;
 import app.domain.order.model.dto.response.UpdateOrderStatusResponse;
 import app.domain.order.model.entity.OrderItem;
 import app.domain.order.model.entity.Orders;
@@ -30,7 +33,6 @@ import app.domain.order.model.repository.OrdersRepository;
 import app.domain.order.status.OrderErrorStatus;
 import app.global.apiPayload.code.status.ErrorStatus;
 import app.global.apiPayload.exception.GeneralException;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -177,5 +179,17 @@ public class OrderService {
 		} catch (JsonProcessingException e) {
 			throw new GeneralException(ErrorStatus._INTERNAL_SERVER_ERROR);
 		}
+	}
+
+	@Transactional(readOnly = true)
+	public List<OrderResponse> getCustomerOrders(Long userId) {
+		List<Orders> orders = ordersRepository.findByUserId(userId);
+		if (orders.isEmpty()) {
+			throw new GeneralException(ErrorStatus.ORDER_NOT_FOUND);
+		}
+		return orders.stream()
+			.map(OrderResponse::of)
+			.collect(Collectors.toList());
+
 	}
 }

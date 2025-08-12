@@ -1,5 +1,6 @@
 package app.domain.order;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import app.domain.order.model.dto.request.CreateOrderRequest;
 import app.domain.order.model.dto.request.UpdateOrderStatusRequest;
 import app.domain.order.model.dto.response.OrderDetailResponse;
+import app.domain.order.model.dto.response.OrderResponse;
 import app.domain.order.model.dto.response.UpdateOrderStatusResponse;
 import app.domain.order.service.OrderService;
 import app.domain.order.status.OrderSuccessStatus;
@@ -54,4 +56,10 @@ public class OrderController {
 		return ApiResponse.onSuccess(OrderSuccessStatus.ORDER_STATUS_UPDATED, response);
 	}
 
+	@Operation(summary = "고객 주문 내역 조회 API", description = "자신의 모든 주문 내역을 조회합니다.")
+	@GetMapping
+	public ApiResponse<List<OrderResponse>> getCustomerOrders( @RequestParam Long userId
+	) {
+		return ApiResponse.onSuccess(OrderSuccessStatus.ORDER_FETCHED, orderService.getCustomerOrders(userId));
+	}
 }
