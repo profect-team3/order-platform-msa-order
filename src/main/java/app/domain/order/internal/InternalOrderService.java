@@ -40,19 +40,21 @@ public class InternalOrderService {
     }
 
     @Transactional
-    public void updateOrderStatus(UUID orderId, String orderStatus) {
+    public String  updateOrderStatus(UUID orderId, String orderStatus) {
         Orders order = ordersRepository.findById(orderId)
             .orElseThrow(() -> new GeneralException(ErrorStatus.ORDER_NOT_FOUND));
         
         OrderStatus status = OrderStatus.valueOf(orderStatus);
         order.updateOrderStatus(status);
+        return "주문 상태를 수정했습니다.";
     }
 
     @Transactional
-    public void addHistory(UUID orderId, String orderState) {
+    public String addHistory(UUID orderId, String orderState) {
         Orders order = ordersRepository.findById(orderId)
             .orElseThrow(() -> new GeneralException(ErrorStatus.ORDER_NOT_FOUND));
         
         order.addHistory(orderState, LocalDateTime.now());
+        return "주문 history를 추가했습니다";
     }
 }
