@@ -1,8 +1,12 @@
 package app.domain.order;
 
+import static org.springframework.data.domain.Sort.Direction.*;
+
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,6 +23,7 @@ import app.domain.order.model.dto.response.UpdateOrderStatusResponse;
 import app.domain.order.service.OrderService;
 import app.domain.order.status.OrderSuccessStatus;
 import app.global.apiPayload.ApiResponse;
+import app.global.apiPayload.PagedResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -44,6 +49,18 @@ public class OrderController {
 	public ApiResponse<OrderDetailResponse> getOrderDetail(@PathVariable UUID orderId) {
 		OrderDetailResponse result = orderService.getOrderDetail(orderId);
 		return ApiResponse.onSuccess(OrderSuccessStatus.ORDER_DETAIL_FETCHED, result);
+	}
+
+	@GetMapping("/{userId}/order")
+	@Operation(
+		summary = "선택한 사용자 주문내역 조회",
+		description = "선택한 사용자의 주문 정보를 확인 합니다."
+	)
+	public ApiResponse<PagedResponse<OrderDetailResponse>> getCustomerOrderListById(
+		@PageableDefault(size = 20, sort = "createdAt", direction = DESC) Pageable pageable,
+		@PathVariable("userId") Long userId
+	) {
+		return ApiResponse.onSuccess(OrderSuccessStatus.MANAGER_GET_CUSTOMER_ORDER_OK,orderService.getCustomerOrderListById(userId, pageable));
 	}
 
 	@Operation(summary = "주문 상태 변경 API", description = "주문 ID로 주문 상태를 변경합니다.")

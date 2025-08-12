@@ -10,6 +10,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,6 +33,7 @@ import app.domain.order.model.entity.enums.OrderStatus;
 import app.domain.order.model.repository.OrderItemRepository;
 import app.domain.order.model.repository.OrdersRepository;
 import app.domain.order.status.OrderErrorStatus;
+import app.global.apiPayload.PagedResponse;
 import app.global.apiPayload.code.status.ErrorStatus;
 import app.global.apiPayload.exception.GeneralException;
 import lombok.RequiredArgsConstructor;
@@ -120,6 +123,19 @@ public class OrderService {
 		List<OrderItem> orderItems = orderItemRepository.findByOrders(order);
 
 		return OrderDetailResponse.from(order, orderItems);
+	}
+
+	@Transactional(readOnly = true)
+	public PagedResponse<OrderDetailResponse> getCustomerOrderListById(Long userId, Pageable pageable) {
+
+		Page<Orders> ordersPage = ordersRepository.findAllByUserIdAndDeliveryAddressIsNotNull(userId, pageable);
+
+		Page<OrderDetailResponse> mapped = ordersPage.map(order -> {
+			List<OrderItem> orderItems = orderItemRepository.findByOrders(order);
+			return OrderDetailResponse.from(order, orderItems);
+		});
+
+		return PagedResponse.from(mapped);
 	}
 
 	private static final Map<OrderStatus, Set<OrderStatus>> VALID_TRANSITIONS = Map.of(
