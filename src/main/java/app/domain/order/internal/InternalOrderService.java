@@ -33,7 +33,12 @@ public class InternalOrderService {
             .orElseThrow(() -> new GeneralException(ErrorStatus.ORDER_NOT_FOUND));
         
         return new OrderInfoResponse(
+            order.getOrdersId(),
+            order.getStoreId(),
+            order.getUserId(),
             order.getTotalPrice(),
+            String.valueOf(order.getOrderStatus()),
+            order.getCreatedAt(),
             order.getPaymentMethod().name(),
             order.isRefundable()
         );
