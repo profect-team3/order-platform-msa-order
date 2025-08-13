@@ -53,7 +53,7 @@ public class CartController {
 	}
 
 	@Operation(summary = "장바구니 조회 API", description = "사용자의 장바구니 내용을 조회합니다. Redis에 없으면 DB에서 로드합니다.")
-	@GetMapping()
+	@GetMapping("/cart")
 	public ApiResponse<List<RedisCartItem>> getCart(@RequestParam Long userId) {
 		List<RedisCartItem> cartItems = cartService.getCartFromCache(userId);
 		return ApiResponse.onSuccess(CartSuccessStatus.CART_RETRIEVED, cartItems);
