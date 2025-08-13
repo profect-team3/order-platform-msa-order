@@ -1,5 +1,6 @@
 package app.domain.order.internal;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.web.bind.annotation.GetMapping;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import app.domain.order.model.dto.response.OrderInfoResponse;
+import app.domain.order.model.dto.response.StoreOrderInfo;
 import app.domain.order.status.OrderSuccessStatus;
 import app.global.apiPayload.ApiResponse;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +20,12 @@ import lombok.RequiredArgsConstructor;
 public class InternalOrderController {
 
     private final InternalOrderService internalOrderService;
+
+    @GetMapping("internal/order/store/{storeId}")
+    public ApiResponse<List<StoreOrderInfo>> getOrdersByStoreId(@PathVariable UUID storeId) {
+        List<StoreOrderInfo> storeOrderInfo = internalOrderService.getOrdersByStoreId(storeId);
+        return ApiResponse.onSuccess(OrderSuccessStatus.ORDER_STORE_INFO,storeOrderInfo);
+    }
 
     @GetMapping("internal/order/{orderId}/exists")
     public ApiResponse<Boolean> isOrderExists(@PathVariable UUID orderId) {
