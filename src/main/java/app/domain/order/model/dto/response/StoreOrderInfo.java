@@ -4,17 +4,19 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
+@NoArgsConstructor
 @AllArgsConstructor
-public class OrderInfoResponse {
+@Builder
+public class StoreOrderInfo {
     private UUID orderId;
     private UUID storeId;
     private Long customerId;
     private Long totalPrice;
     private String orderStatus;
     private LocalDateTime orderedAt;
-    private String paymentMethod;
-    private Boolean isRefundable;
 }

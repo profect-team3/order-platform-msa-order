@@ -22,7 +22,7 @@ public class InternalCartService {
 				.userId(userId)
 				.build();
 			cartRepository.save(cart);
-			return "success";
+			return "장바구니가 생성되었습니다.";
 		} catch (Exception e) {
 			throw new GeneralException(ErrorStatus._INTERNAL_SERVER_ERROR);
 		}

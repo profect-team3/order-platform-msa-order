@@ -6,6 +6,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import app.domain.cart.service.CartService;
+import app.domain.cart.status.CartSuccessStatus;
+import app.global.apiPayload.ApiResponse;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -16,12 +18,13 @@ public class InternalCartController {
 	private final InternalCartService internalCartService;
 
 	@DeleteMapping("internal/order/cart/{userId}")
-	public void isOrderExists(@PathVariable Long userId) {
-		cartService.clearCartItems(userId);
+	public ApiResponse<String> clearOrderCartItems(@PathVariable Long userId) {
+		return ApiResponse.onSuccess(CartSuccessStatus.CART_CLEARED,cartService.clearCartItems(userId));
 	}
 
 	@PostMapping("internal/cart/{userId}")
-	public String createCart(@PathVariable Long userId){
-		return internalCartService.createCart(userId);
+	public ApiResponse<String> createCart(@PathVariable Long userId){
+
+		return ApiResponse.onSuccess(CartSuccessStatus.CART_CREATED,internalCartService.createCart(userId));
 	}
 }

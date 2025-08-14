@@ -33,6 +33,7 @@ import app.domain.order.model.entity.enums.OrderStatus;
 import app.domain.order.model.repository.OrderItemRepository;
 import app.domain.order.model.repository.OrdersRepository;
 import app.domain.order.status.OrderErrorStatus;
+import app.global.apiPayload.ApiResponse;
 import app.global.apiPayload.PagedResponse;
 import app.global.apiPayload.code.status.ErrorStatus;
 import app.global.apiPayload.exception.GeneralException;
@@ -62,16 +63,24 @@ public class OrderService {
 			throw new GeneralException(OrderErrorStatus.ORDER_DIFFERENT_STORE);
 		}
 
-		if (!internalStoreClient.isStoreExists(storeId)) {
+		ApiResponse<Boolean> storeExistsResponse = internalStoreClient.isStoreExists(storeId);
+		if(!storeExistsResponse.isSuccess()){
+			throw new GeneralException(ErrorStatus._INTERNAL_SERVER_ERROR);
+		}
+		if (!storeExistsResponse.result()) {
 			throw new GeneralException(ErrorStatus.STORE_NOT_FOUND);
 		}
 
 		List<UUID> menuIds = cartItems.stream()
 			.map(RedisCartItem::getMenuId)
 			.toList();
-		
-		List<MenuInfoResponse> menuInfoResponseList = internalStoreClient.getMenuInfoList(menuIds);
 
+		ApiResponse<List<MenuInfoResponse>> menuInfoResponse=internalStoreClient.getMenuInfoList(menuIds);
+		if(!menuInfoResponse.isSuccess()){
+			throw new GeneralException(ErrorStatus.MENU_NOT_FOUND);
+		}
+
+		List<MenuInfoResponse> menuInfoResponseList=menuInfoResponse.result();
 		Map<UUID, MenuInfoResponse> menuMap = menuInfoResponseList.stream()
 			.collect(java.util.stream.Collectors.toMap(MenuInfoResponse::getMenuId, menu -> menu));
 
@@ -160,7 +169,11 @@ public class OrderService {
 	}
 
 	private void validateOwnerUpdate(Long userId, Orders order, OrderStatus newStatus) {
-		if (!internalStoreClient.isStoreOwner(userId, order.getStoreId())) {
+		ApiResponse<Boolean> response = internalStoreClient.isStoreOwner(userId,order.getStoreId());
+		if(!response.isSuccess()){
+			throw new GeneralException(ErrorStatus._INTERNAL_SERVER_ERROR);
+		}
+		if (!response.result()) {
 			throw new GeneralException(OrderErrorStatus.ORDER_ACCESS_DENIED);
 		}
 
