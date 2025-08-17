@@ -14,6 +14,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -39,9 +41,11 @@ import app.global.apiPayload.PagedResponse;
 import app.global.apiPayload.code.status.ErrorStatus;
 import app.global.apiPayload.exception.GeneralException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class OrderService {
 
 	private final OrdersRepository ordersRepository;
@@ -63,11 +67,14 @@ public class OrderService {
 		if (!allSameStore) {
 			throw new GeneralException(OrderErrorStatus.ORDER_DIFFERENT_STORE);
 		}
-
-		ApiResponse<Boolean> storeExistsResponse = internalStoreClient.isStoreExists(storeId);
-		if(!storeExistsResponse.isSuccess()){
+		ApiResponse<Boolean> storeExistsResponse;
+		try{
+			storeExistsResponse = internalStoreClient.isStoreExists(storeId);
+		} catch (HttpClientErrorException | HttpServerErrorException e){
+			log.error("Store Service Error: {}", e.getResponseBodyAsString());
 			throw new GeneralException(ErrorStatus._INTERNAL_SERVER_ERROR);
 		}
+
 		if (!storeExistsResponse.result()) {
 			throw new GeneralException(ErrorStatus.STORE_NOT_FOUND);
 		}
@@ -80,8 +87,11 @@ public class OrderService {
 			.map(RedisCartItem::getMenuId)
 			.toList();
 
-		ApiResponse<List<MenuInfoResponse>> menuInfoResponse=internalStoreClient.getMenuInfoList(menuIds);
-		if(!menuInfoResponse.isSuccess()){
+		ApiResponse<List<MenuInfoResponse>> menuInfoResponse;
+		try {
+			menuInfoResponse=internalStoreClient.getMenuInfoList(menuIds);
+		} catch (HttpClientErrorException | HttpServerErrorException e){
+			log.error("Store Service Error: {}", e.getResponseBodyAsString());
 			throw new GeneralException(ErrorStatus.MENU_NOT_FOUND);
 		}
 
@@ -96,8 +106,11 @@ public class OrderService {
 			throw new GeneralException(OrderErrorStatus.ORDER_PRICE_MISMATCH);
 		}
 
-		ApiResponse<Boolean> stockCheckResponse = internalStoreClient.decreaseStock(stockRequests);
-		if (!stockCheckResponse.isSuccess()) {
+		ApiResponse<Boolean> stockCheckResponse;
+		try {
+			stockCheckResponse = internalStoreClient.decreaseStock(stockRequests);
+		}catch (HttpServerErrorException | HttpClientErrorException e){
+			log.error("Store Service Error: {}", e.getResponseBodyAsString());
 			throw new GeneralException(ErrorStatus._INTERNAL_SERVER_ERROR);
 		}
 
@@ -183,10 +196,14 @@ public class OrderService {
 	}
 
 	private void validateOwnerUpdate(Long userId, Orders order, OrderStatus newStatus) {
-		ApiResponse<Boolean> response = internalStoreClient.isStoreOwner(userId,order.getStoreId());
-		if(!response.isSuccess()){
+		ApiResponse<Boolean> response;
+		try {
+			response=internalStoreClient.isStoreOwner(userId,order.getStoreId());
+		} catch (HttpClientErrorException | HttpServerErrorException e){
+			log.error("Store Service Error: {}", e.getResponseBodyAsString());
 			throw new GeneralException(ErrorStatus._INTERNAL_SERVER_ERROR);
 		}
+
 		if (!response.result()) {
 			throw new GeneralException(OrderErrorStatus.ORDER_ACCESS_DENIED);
 		}
