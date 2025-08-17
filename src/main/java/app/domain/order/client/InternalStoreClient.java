@@ -55,7 +55,7 @@ public class InternalStoreClient {
     }
 
     public ApiResponse<Boolean> decreaseStock(List<StockRequest> stockRequests) {
-        String url = storeServiceUrl + "/internal/store/stocks/decrease";
+        String url = storeServiceUrl + "/internal/menus/stocks/decrease";
 
         ResponseEntity<ApiResponse<Boolean>> response = restTemplate.exchange(
             url,
