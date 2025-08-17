@@ -24,6 +24,7 @@ import app.domain.cart.service.CartService;
 import app.domain.order.client.InternalStoreClient;
 import app.domain.order.model.dto.response.MenuInfoResponse;
 import app.domain.order.model.dto.request.CreateOrderRequest;
+import app.domain.order.model.dto.request.StockRequest;
 import app.domain.order.model.dto.response.OrderDetailResponse;
 import app.domain.order.model.dto.response.OrderResponse;
 import app.domain.order.model.dto.response.UpdateOrderStatusResponse;
@@ -71,6 +72,10 @@ public class OrderService {
 			throw new GeneralException(ErrorStatus.STORE_NOT_FOUND);
 		}
 
+		List<StockRequest> stockRequests = cartItems.stream()
+			.map(StockRequest::from)
+			.toList();
+
 		List<UUID> menuIds = cartItems.stream()
 			.map(RedisCartItem::getMenuId)
 			.toList();
@@ -89,6 +94,15 @@ public class OrderService {
 			.sum();
 		if (!calculatedTotalPrice.equals(request.getTotalPrice())) {
 			throw new GeneralException(OrderErrorStatus.ORDER_PRICE_MISMATCH);
+		}
+
+		ApiResponse<Boolean> stockCheckResponse = internalStoreClient.decreaseStock(stockRequests);
+		if (!stockCheckResponse.isSuccess()) {
+			throw new GeneralException(ErrorStatus._INTERNAL_SERVER_ERROR);
+		}
+
+		if(!stockCheckResponse.result()){
+			throw new GeneralException(OrderErrorStatus.OUT_OF_STOCK);
 		}
 
 		Orders order = Orders.builder()

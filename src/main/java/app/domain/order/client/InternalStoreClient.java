@@ -17,6 +17,7 @@ import app.global.apiPayload.code.status.ErrorStatus;
 import app.global.apiPayload.exception.GeneralException;
 
 import app.domain.order.model.dto.response.MenuInfoResponse;
+import app.domain.order.model.dto.request.StockRequest;
 import lombok.RequiredArgsConstructor;
 
 @Component
@@ -50,6 +51,19 @@ public class InternalStoreClient {
             null,
             new ParameterizedTypeReference<ApiResponse<Boolean>>() {}
         );
+        return response.getBody();
+    }
+
+    public ApiResponse<Boolean> decreaseStock(List<StockRequest> stockRequests) {
+        String url = storeServiceUrl + "/internal/store/stocks/decrease";
+
+        ResponseEntity<ApiResponse<Boolean>> response = restTemplate.exchange(
+            url,
+            HttpMethod.POST,
+            new org.springframework.http.HttpEntity<>(stockRequests),
+            new ParameterizedTypeReference<ApiResponse<Boolean>>() {}
+        );
+
         return response.getBody();
     }
 
