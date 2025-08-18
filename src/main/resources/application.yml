@@ -32,9 +32,9 @@ spring:
       username: ${MONGO_INITDB_ROOT_USERNAME}
       password: ${MONGO_INITDB_ROOT_PASSWORD}
       authentication-database: admin
-  batch:
-    job:
-      enabled=false:
+#  batch:
+#    job:
+#      enabled=false:
 
   security:
     oauth2:
