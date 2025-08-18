@@ -12,4 +12,5 @@ import app.domain.order.model.entity.Orders;
 @Repository
 public interface OrderItemRepository extends JpaRepository<OrderItem, UUID> {
 	List<OrderItem> findByOrders(Orders orders);
+    List<OrderItem> findByOrders_OrdersIdIn(List<UUID> ordersIds);
 }
