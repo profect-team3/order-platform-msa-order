@@ -35,8 +35,9 @@ public class MongoOrder {
     private String orderHistory;
     private String requestMessage;
     private List<MongoOrderItem> orderItems;
+    private Long version;
 
-    public MongoOrder(String id, String ordersId, String storeId, Long userId, Long totalPrice, String deliveryAddress, PaymentMethod paymentMethod, OrderChannel orderChannel, ReceiptMethod receiptMethod, OrderStatus orderStatus, boolean isRefundable, String orderHistory, String requestMessage, List<MongoOrderItem> orderItems) {
+    public MongoOrder(String id, String ordersId, String storeId, Long userId, Long totalPrice, String deliveryAddress, PaymentMethod paymentMethod, OrderChannel orderChannel, ReceiptMethod receiptMethod, OrderStatus orderStatus, boolean isRefundable, String orderHistory, String requestMessage, List<MongoOrderItem> orderItems, Long version) {
         this.id = id;
         this.ordersId = ordersId;
         this.storeId = storeId;
@@ -51,5 +52,6 @@ public class MongoOrder {
         this.orderHistory = orderHistory;
         this.requestMessage = requestMessage;
         this.orderItems = orderItems;
+        this.version = version;
     }
 }
