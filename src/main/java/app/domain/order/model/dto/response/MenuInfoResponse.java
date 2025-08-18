@@ -4,8 +4,10 @@ import java.util.UUID;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
+@NoArgsConstructor
 public class MenuInfoResponse {
     private UUID menuId;
     private String name;
