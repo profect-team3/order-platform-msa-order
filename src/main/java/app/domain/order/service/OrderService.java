@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
@@ -21,6 +22,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import app.commonSecurity.TokenPrincipalParser;
 import app.domain.cart.model.dto.RedisCartItem;
 import app.domain.cart.service.CartService;
 import app.domain.order.client.InternalStoreClient;
@@ -54,11 +56,13 @@ public class OrderService {
 	private final OrderDelayService orderDelayService;
 	private final ObjectMapper objectMapper;
 	private final InternalStoreClient internalStoreClient;
+	private final TokenPrincipalParser tokenPrincipalParser;
 
 	@Transactional
-	public UUID createOrder(Long userId,CreateOrderRequest request) {
-
-		List<RedisCartItem> cartItems = cartService.getCartFromCache(userId);
+	public UUID createOrder(Authentication authentication,CreateOrderRequest request) {
+		String userIdStr = tokenPrincipalParser.getUserId(authentication);
+		Long userId = Long.parseLong(userIdStr);
+		List<RedisCartItem> cartItems = cartService.getCartFromCache(authentication);
 		if (cartItems.isEmpty()) {
 			throw new GeneralException(ErrorStatus.CART_NOT_FOUND);
 		}
@@ -182,12 +186,12 @@ public class OrderService {
 	);
 
 	@Transactional
-	public UpdateOrderStatusResponse updateOrderStatus(Long userId,UUID orderId, OrderStatus newStatus) {
+	public UpdateOrderStatusResponse updateOrderStatus(UUID orderId, OrderStatus newStatus) {
 
 		Orders order = ordersRepository.findById(orderId)
 			.orElseThrow(() -> new GeneralException(ErrorStatus.ORDER_NOT_FOUND));
 
-		validateOwnerUpdate(userId, order, newStatus);
+		validateOwnerUpdate(order, newStatus);
 
 		String updatedHistory = appendToHistory(order.getOrderHistory(), newStatus);
 		order.updateStatusAndHistory(newStatus, updatedHistory);
@@ -195,10 +199,10 @@ public class OrderService {
 		return UpdateOrderStatusResponse.from(order);
 	}
 
-	private void validateOwnerUpdate(Long userId, Orders order, OrderStatus newStatus) {
+	private void validateOwnerUpdate(Orders order, OrderStatus newStatus) {
 		ApiResponse<Boolean> response;
 		try {
-			response=internalStoreClient.isStoreOwner(userId,order.getStoreId());
+			response=internalStoreClient.isStoreOwner(order.getStoreId());
 		} catch (HttpClientErrorException | HttpServerErrorException e){
 			log.error("Store Service Error: {}", e.getResponseBodyAsString());
 			throw new GeneralException(ErrorStatus._INTERNAL_SERVER_ERROR);
@@ -242,7 +246,10 @@ public class OrderService {
 	}
 
 	@Transactional(readOnly = true)
-	public List<OrderResponse> getCustomerOrders(Long userId) {
+	public List<OrderResponse> getCustomerOrders(Authentication authentication) {
+		String userIdStr = tokenPrincipalParser.getUserId(authentication);
+		Long userId = Long.parseLong(userIdStr);
+
 		List<Orders> orders = ordersRepository.findByUserId(userId);
 		if (orders.isEmpty()) {
 			throw new GeneralException(ErrorStatus.ORDER_NOT_FOUND);

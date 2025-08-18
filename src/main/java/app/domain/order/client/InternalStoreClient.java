@@ -42,8 +42,8 @@ public class InternalStoreClient {
         return response.getBody();
     }
 
-    public ApiResponse<Boolean> isStoreOwner(Long userId, UUID storeId) {
-        String url = storeServiceUrl + "/internal/store/" + storeId + "/owner/" + userId;
+    public ApiResponse<Boolean> isStoreOwner(UUID storeId) {
+        String url = storeServiceUrl + "/internal/store/" + storeId + "/owner" ;
 
         ResponseEntity<ApiResponse<Boolean>> response = restTemplate.exchange(
             url,

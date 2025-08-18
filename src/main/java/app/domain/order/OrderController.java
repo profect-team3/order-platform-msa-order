@@ -7,6 +7,7 @@ import java.util.UUID;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -39,8 +40,8 @@ public class OrderController {
 	@Operation(summary = "주문 생성 API", description = "사용자의 장바구니를 기반으로 주문을 생성합니다.")
 	@PostMapping
 	public ApiResponse<UUID> createOrder(
-		@Valid @RequestBody CreateOrderRequest request, @RequestParam Long userId) {
-		UUID orderId = orderService.createOrder(userId,request);
+		@Valid @RequestBody CreateOrderRequest request, Authentication authentication) {
+		UUID orderId = orderService.createOrder(authentication,request);
 		return ApiResponse.onSuccess(OrderSuccessStatus.ORDER_CREATED, orderId);
 	}
 
@@ -51,11 +52,12 @@ public class OrderController {
 		return ApiResponse.onSuccess(OrderSuccessStatus.ORDER_DETAIL_FETCHED, result);
 	}
 
-	@GetMapping("/{userId}/order")
+
 	@Operation(
 		summary = "선택한 사용자 주문내역 조회",
 		description = "선택한 사용자의 주문 정보를 확인 합니다."
 	)
+	@GetMapping("/{userId}/order")
 	public ApiResponse<PagedResponse<OrderDetailResponse>> getCustomerOrderListById(
 		@PageableDefault(size = 20, sort = "createdAt", direction = DESC) Pageable pageable,
 		@PathVariable("userId") Long userId
@@ -67,16 +69,16 @@ public class OrderController {
 	@PatchMapping("/{orderId}/status")
 	public ApiResponse<UpdateOrderStatusResponse> updateOrderStatus(
 		@PathVariable UUID orderId,
-		@Valid @RequestBody UpdateOrderStatusRequest request, @RequestParam Long userId
+		@Valid @RequestBody UpdateOrderStatusRequest request, Authentication authentication
 	) {
-		UpdateOrderStatusResponse response = orderService.updateOrderStatus(userId,orderId, request.getNewStatus());
+		UpdateOrderStatusResponse response = orderService.updateOrderStatus(orderId, request.getNewStatus());
 		return ApiResponse.onSuccess(OrderSuccessStatus.ORDER_STATUS_UPDATED, response);
 	}
 
 	@Operation(summary = "고객 주문 내역 조회 API", description = "자신의 모든 주문 내역을 조회합니다.")
 	@GetMapping
-	public ApiResponse<List<OrderResponse>> getCustomerOrders( @RequestParam Long userId
+	public ApiResponse<List<OrderResponse>> getCustomerOrders( Authentication authentication
 	) {
-		return ApiResponse.onSuccess(OrderSuccessStatus.ORDER_FETCHED, orderService.getCustomerOrders(userId));
+		return ApiResponse.onSuccess(OrderSuccessStatus.ORDER_FETCHED, orderService.getCustomerOrders(authentication));
 	}
 }

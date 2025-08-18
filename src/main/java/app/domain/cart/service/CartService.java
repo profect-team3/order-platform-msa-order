@@ -5,9 +5,11 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import app.commonSecurity.TokenPrincipalParser;
 import app.domain.cart.model.dto.AddCartItemRequest;
 import app.domain.cart.model.dto.RedisCartItem;
 import app.domain.cart.model.entity.Cart;
@@ -25,10 +27,12 @@ public class CartService {
 	private final CartRedisService cartRedisService;
 	private final CartRepository cartRepository;
 	private final CartItemRepository cartItemRepository;
+	private final TokenPrincipalParser tokenPrincipalParser;
 
-	public String addCartItem(Long userId,AddCartItemRequest request) {
-
-		List<RedisCartItem> items = getCartFromCache(userId);
+	public String addCartItem(Authentication authentication,AddCartItemRequest request) {
+		String userIdStr = tokenPrincipalParser.getUserId(authentication);
+		Long userId = Long.parseLong(userIdStr);
+		List<RedisCartItem> items = getCartFromCache(authentication);
 
 		if (!items.isEmpty() && !items.get(0).getStoreId().equals(request.getStoreId())) {
 			items.clear();
@@ -51,8 +55,10 @@ public class CartService {
 		return cartRedisService.saveCartToRedis(userId, items);
 	}
 
-	public String updateCartItem(Long userId,UUID menuId, int quantity) {
-		List<RedisCartItem> items = getCartFromCache(userId);
+	public String updateCartItem(Authentication authentication,UUID menuId, int quantity) {
+		String userIdStr = tokenPrincipalParser.getUserId(authentication);
+		Long userId = Long.parseLong(userIdStr);
+		List<RedisCartItem> items = getCartFromCache(authentication);
 
 		items.stream()
 			.filter(item -> item.getMenuId().equals(menuId))
@@ -61,18 +67,24 @@ public class CartService {
 		return cartRedisService.saveCartToRedis(userId, items);
 	}
 
-	public String removeCartItem(Long userId,UUID menuId) {
+	public String removeCartItem(Authentication authentication,UUID menuId) {
+		String userIdStr = tokenPrincipalParser.getUserId(authentication);
+		Long userId = Long.parseLong(userIdStr);
 		return cartRedisService.removeCartItem(userId, menuId);
 	}
 
-	public List<RedisCartItem> getCartFromCache(Long userId) {
+	public List<RedisCartItem> getCartFromCache(Authentication authentication) {
+		String userIdStr = tokenPrincipalParser.getUserId(authentication);
+		Long userId = Long.parseLong(userIdStr);
 		if (!cartRedisService.existsCartInRedis(userId)) {
 			loadDbToRedis(userId);
 		}
 		return cartRedisService.getCartFromRedis(userId);
 	}
 
-	public String clearCartItems(Long userId) {
+	public String clearCartItems(Authentication authentication) {
+		String userIdStr = tokenPrincipalParser.getUserId(authentication);
+		Long userId = Long.parseLong(userIdStr);
 		return cartRedisService.clearCartItems(userId);
 	}
 
