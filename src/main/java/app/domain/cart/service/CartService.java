@@ -88,10 +88,10 @@ public class CartService {
 		return cartRedisService.clearCartItems(userId);
 	}
 
-	@Transactional(readOnly = true)
+	@Transactional
 	public String loadDbToRedis(Long userId) {
 		Cart cart = cartRepository.findByUserId(userId)
-			.orElseThrow(() -> new GeneralException(ErrorStatus.CART_NOT_FOUND));
+			.orElseGet(() -> cartRepository.save(Cart.builder().userId(userId).build()));
 
 		List<CartItem> cartItems = cartItemRepository.findByCart_CartId(cart.getCartId());
 		List<RedisCartItem> redisItems = cartItems.stream()
