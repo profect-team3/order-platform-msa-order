@@ -83,9 +83,7 @@ public class OrderService {
 			throw new GeneralException(ErrorStatus.STORE_NOT_FOUND);
 		}
 
-		List<StockRequest> stockRequests = cartItems.stream()
-			.map(StockRequest::from)
-			.toList();
+
 
 		List<UUID> menuIds = cartItems.stream()
 			.map(RedisCartItem::getMenuId)
@@ -109,6 +107,11 @@ public class OrderService {
 		if (!calculatedTotalPrice.equals(request.getTotalPrice())) {
 			throw new GeneralException(OrderErrorStatus.ORDER_PRICE_MISMATCH);
 		}
+
+
+		List<StockRequest> stockRequests = cartItems.stream()
+			.map(StockRequest::from)
+			.toList();
 
 		ApiResponse<Boolean> stockCheckResponse;
 		try {
