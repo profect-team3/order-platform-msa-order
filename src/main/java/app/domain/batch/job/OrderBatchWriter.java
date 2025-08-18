@@ -24,7 +24,7 @@ public class OrderBatchWriter implements ItemWriter<MongoOrder> {
             return;
         }
 
-        String collectionName = "mongo_orders";
+        String collectionName = "order";
         BulkOperations bulkOps = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, collectionName);
 
         for (MongoOrder item : chunk) {

@@ -13,7 +13,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.util.List;
 import java.util.UUID;
 
-@Document(collection = "mongo_orders")
+@Document(collection = "order")
 @Getter
 @NoArgsConstructor
 @Builder
