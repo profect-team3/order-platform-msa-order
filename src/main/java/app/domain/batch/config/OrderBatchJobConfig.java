@@ -26,10 +26,12 @@ public class OrderBatchJobConfig {
     private final OrderBatchReader orderBatchReader;
     private final OrderBatchProcessor orderBatchProcessor;
     private final OrderBatchWriter orderBatchWriter;
+    private final DiscordListener discordListener;
 
     @Bean
     public Job orderSyncJob() {
         return new JobBuilder("orderSyncJob", jobRepository)
+                .listener(discordListener)
                 .start(orderSyncStep())
                 .build();
     }
