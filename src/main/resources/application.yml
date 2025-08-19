@@ -25,6 +25,16 @@ spring:
       port: ${REDIS_PORT}
       password: ${REDIS_PASSWORD}
       database: 0
+    mongodb:
+      host: localhost
+      port: 27017
+      database: store-db
+      username: ${MONGO_INITDB_ROOT_USERNAME}
+      password: ${MONGO_INITDB_ROOT_PASSWORD}
+      authentication-database: admin
+#  batch:
+#    job:
+#      enabled=false:
 
   security:
     oauth2:
@@ -34,6 +44,19 @@ spring:
 
 jwt:
   audience:  ${AUTH_INTERNAL_AUDIENCE:internal-services}
+
+logging:
+  level:
+    org:
+      springframework:
+        data:
+          mongodb:
+            core:
+              MongoTemplate: DEBUG
+
+discord:
+  webhook:
+    url: ${DISCORD_URL}
 
 server:
   port: 8084
