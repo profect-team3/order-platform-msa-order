@@ -40,6 +40,7 @@ import app.global.apiPayload.code.status.SuccessStatus;
 import app.global.apiPayload.exception.GeneralException;
 
 @ExtendWith(MockitoExtension.class)
+@DisplayName("OrderService Test")
 class OrderServiceTest {
 
 	@Mock

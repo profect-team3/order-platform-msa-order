@@ -27,6 +27,7 @@ import app.domain.cart.service.CartRedisService;
 import app.domain.cart.service.CartService;
 
 @ExtendWith(MockitoExtension.class)
+@DisplayName("CartService Test")
 class CartServiceTest {
 
     @Mock
