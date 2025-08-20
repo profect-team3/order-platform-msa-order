@@ -53,6 +53,7 @@ dependencies {
     annotationProcessor "jakarta.persistence:jakarta.persistence-api"
     // TEST
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.security:spring-security-test'
 
     implementation files('libs/msa-common-security-1.0.4-plain.jar')
     implementation "org.springframework.boot:spring-boot-starter-security"
