@@ -17,5 +17,8 @@ resilience4j:
         minimumNumberOfCalls: 2
         failureRateThreshold: 50
 
+eureka:
+  client:
+    enabled: false
 
 
