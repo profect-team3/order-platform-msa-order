@@ -42,6 +42,8 @@ import app.global.apiPayload.ApiResponse;
 import app.global.apiPayload.PagedResponse;
 import app.global.apiPayload.code.status.ErrorStatus;
 import app.global.apiPayload.exception.GeneralException;
+import io.github.resilience4j.circuitbreaker.CircuitBreaker;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -57,6 +59,7 @@ public class OrderService {
 	private final ObjectMapper objectMapper;
 	private final InternalStoreClient internalStoreClient;
 	private final TokenPrincipalParser tokenPrincipalParser;
+	private final CircuitBreakerRegistry circuitBreakerRegistry;
 
 	@Transactional
 	public UUID createOrder(Authentication authentication,CreateOrderRequest request) {
@@ -115,8 +118,9 @@ public class OrderService {
 
 		ApiResponse<Boolean> stockCheckResponse;
 		try {
-			stockCheckResponse = internalStoreClient.decreaseStock(stockRequests);
-		}catch (HttpServerErrorException | HttpClientErrorException e){
+			CircuitBreaker circuitBreaker = circuitBreakerRegistry.circuitBreaker("test");
+			stockCheckResponse = circuitBreaker.executeSupplier(() -> internalStoreClient.decreaseStock(stockRequests));
+		} catch (HttpServerErrorException | HttpClientErrorException e){
 			log.error("Store Service Error: {}", e.getResponseBodyAsString());
 			throw new GeneralException(ErrorStatus._INTERNAL_SERVER_ERROR);
 		}
