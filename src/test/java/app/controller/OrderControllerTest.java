@@ -14,7 +14,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import app.domain.order.OrderController;
+import app.domain.order.controller.OrderController;
 import app.domain.order.model.dto.request.CreateOrderRequest;
 import app.domain.order.model.dto.request.UpdateOrderStatusRequest;
 import app.domain.order.model.dto.response.OrderDetailResponse;
