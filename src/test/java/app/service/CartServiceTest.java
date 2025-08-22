@@ -15,6 +15,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.Authentication;
+import org.springframework.test.context.ActiveProfiles;
 
 import app.commonSecurity.TokenPrincipalParser;
 import app.domain.cart.model.dto.AddCartItemRequest;
@@ -28,6 +29,7 @@ import app.domain.cart.service.CartService;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("CartService Test")
+@ActiveProfiles("test")
 class CartServiceTest {
 
     @Mock

@@ -42,6 +42,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -50,6 +51,7 @@ import org.springframework.web.context.WebApplicationContext;
 
 @WebMvcTest(OrderController.class)
 @DisplayName("OrderController 테스트")
+@ActiveProfiles("test")
 class OrderControllerTest {
 
 	@Autowired

@@ -16,6 +16,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.Authentication;
+import org.springframework.test.context.ActiveProfiles;
 
 import app.commonSecurity.TokenPrincipalParser;
 import app.domain.cart.model.dto.RedisCartItem;
@@ -41,6 +42,7 @@ import app.global.apiPayload.exception.GeneralException;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("OrderService Test")
+@ActiveProfiles("test")
 class OrderServiceTest {
 
 	@Mock
