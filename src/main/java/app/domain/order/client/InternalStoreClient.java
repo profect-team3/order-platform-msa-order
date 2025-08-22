@@ -26,7 +26,7 @@ public class InternalStoreClient {
 
     private final RestTemplate restTemplate;
     
-    @Value("${store.service.url:http://localhost:8082}")
+    @Value("${service.store.url}")
     private String storeServiceUrl;
 
     public ApiResponse<Boolean> isStoreExists(UUID storeId) {

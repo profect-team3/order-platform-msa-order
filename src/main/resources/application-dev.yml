@@ -8,7 +8,6 @@ spring:
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
-
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
@@ -18,7 +17,6 @@ spring:
         format_sql: true
         show_sql: true
         use_sql_comments: true
-
   data:
     redis:
       host: ${REDIS_HOST}
@@ -32,10 +30,6 @@ spring:
       username: ${MONGO_INITDB_ROOT_USERNAME}
       password: ${MONGO_INITDB_ROOT_PASSWORD}
       authentication-database: admin
-#  batch:
-#    job:
-#      enabled=false:
-
   security:
     oauth2:
       resourceserver:
@@ -62,9 +56,9 @@ resilience4j:
   circuitbreaker:
     configs:
       default:
-        waitDurationInOpenState: 30s # HALF_OPEN 상태로 빨리 전환되어 장애가 복구 될 수 있도록 기본값(60s)보다 작게 설정
-        slowCallRateThreshold: 80 # slowCall 발생 시 서버 스레드 점유로 인해 장애가 생길 수 있으므로 기본값(100)보다 조금 작게 설정
-        slowCallDurationThreshold: 5s # 위와 같은 이유로 5초를 slowCall로 판단함. 해당 값은 TimeLimiter의 timeoutDuration보다 작아야 함
+        waitDurationInOpenState: 30s
+        slowCallRateThreshold: 80
+        slowCallDurationThreshold: 5s
         registerHealthIndicator: true
         recordFailurePredicate: app.global.config.RestTemplateCircuitRecordFailurePredicate
 
@@ -75,10 +69,12 @@ resilience4j:
   timelimiter:
     configs:
       default:
-        timeoutDuration: 6s # slowCallDurationThreshold보다는 크게 설정되어야 함
+        timeoutDuration: 6s
         cancelRunningFuture: true
 
+service:
+  store:
+    url: http://localhost:8082
 
 server:
   port: 8084
-
