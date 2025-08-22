@@ -18,6 +18,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 import app.global.apiPayload.ApiResponse;
 import app.global.apiPayload.code.BaseCode;
 import app.global.apiPayload.code.status.ErrorStatus;
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -60,6 +61,19 @@ public class ExceptionAdvice extends ResponseEntityExceptionHandler {
 			body,
 			new HttpHeaders(),
 			code.getReasonHttpStatus().getHttpStatus(),
+			request
+		);
+	}
+
+	@ExceptionHandler(CallNotPermittedException.class)
+	public ResponseEntity<Object> handleCallNotPermittedException(CallNotPermittedException ex, WebRequest request) {
+		ErrorStatus errorStatus = ErrorStatus._CALLNOTPERMITTED;
+		ApiResponse<Object> body = ApiResponse.onFailure(errorStatus, null);
+		return super.handleExceptionInternal(
+			ex,
+			body,
+			new HttpHeaders(),
+			errorStatus.getHttpStatus(),
 			request
 		);
 	}

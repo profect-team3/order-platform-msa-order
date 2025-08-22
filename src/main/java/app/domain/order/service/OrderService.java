@@ -42,6 +42,7 @@ import app.global.apiPayload.ApiResponse;
 import app.global.apiPayload.PagedResponse;
 import app.global.apiPayload.code.status.ErrorStatus;
 import app.global.apiPayload.exception.GeneralException;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -114,9 +115,9 @@ public class OrderService {
 			.toList();
 
 		ApiResponse<Boolean> stockCheckResponse;
-		try {
-			stockCheckResponse = internalStoreClient.decreaseStock(stockRequests);
-		}catch (HttpServerErrorException | HttpClientErrorException e){
+		try{
+			stockCheckResponse=decreaseStockWithCircuitBreaker(stockRequests);
+		}catch (HttpServerErrorException|HttpClientErrorException e){
 			log.error("Store Service Error: {}", e.getResponseBodyAsString());
 			throw new GeneralException(ErrorStatus._INTERNAL_SERVER_ERROR);
 		}
@@ -157,6 +158,11 @@ public class OrderService {
 		orderDelayService.scheduleRefundDisable(savedOrder.getOrdersId());
 
 		return savedOrder.getOrdersId();
+	}
+
+	@CircuitBreaker(name = "test")
+	public ApiResponse<Boolean> decreaseStockWithCircuitBreaker(List<StockRequest> stockRequests) {
+		return internalStoreClient.decreaseStock(stockRequests);
 	}
 
 	public OrderDetailResponse getOrderDetail(UUID orderId) {

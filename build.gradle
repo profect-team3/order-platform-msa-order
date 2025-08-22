@@ -54,10 +54,16 @@ dependencies {
     // TEST
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
+    testImplementation 'org.springframework.batch:spring-batch-test'
+    testImplementation 'com.h2database:h2'
+    testRuntimeOnly 'com.h2database:h2'
 
     implementation files('libs/msa-common-security-1.0.7-plain.jar')
     implementation "org.springframework.boot:spring-boot-starter-security"
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
+
+    // circuit-breaker
+    implementation 'io.github.resilience4j:resilience4j-spring-boot3'
 }
 
 clean {
