@@ -1,0 +1,85 @@
+spring:
+  application:
+    name: order
+  config:
+    import: optional:file:.env[.properties]
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        format_sql: true
+        show_sql: true
+        use_sql_comments: true
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      password: ${REDIS_PASSWORD}
+      database: 0
+    mongodb:
+      host: localhost
+      port: 27017
+      database: store-db
+      username: ${MONGO_INITDB_ROOT_USERNAME}
+      password: ${MONGO_INITDB_ROOT_PASSWORD}
+      authentication-database: admin
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://localhost:8083/oauth/jwks
+
+jwt:
+  audience:  ${AUTH_INTERNAL_AUDIENCE:internal-services}
+
+logging:
+  level:
+    org:
+      springframework:
+        data:
+          mongodb:
+            core:
+              MongoTemplate: DEBUG
+
+discord:
+  webhook:
+    url: ${DISCORD_URL}
+
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        waitDurationInOpenState: 30s
+        slowCallRateThreshold: 80
+        slowCallDurationThreshold: 5s
+        registerHealthIndicator: true
+        recordFailurePredicate: app.global.config.RestTemplateCircuitRecordFailurePredicate
+
+    instances:
+      default:
+        baseConfig: default
+      test:
+        base-config: default
+        slidingWindowSize: 5
+        minimumNumberOfCalls: 2
+        failureRateThreshold: 50
+
+service:
+  store:
+    url: http://localhost:8082
+
+server:
+  port: 8084
+
+eureka:
+  client:
+    enabled: false
+
+
