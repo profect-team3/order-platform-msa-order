@@ -53,18 +53,6 @@ public class OrderMcpService {
 		if (!allSameStore) {
 			throw new GeneralException(OrderErrorStatus.ORDER_DIFFERENT_STORE);
 		}
-		ApiResponse<Boolean> storeExistsResponse;
-		try{
-			storeExistsResponse = internalStoreClient.isStoreExists(storeId);
-		} catch (HttpClientErrorException | HttpServerErrorException e){
-			log.error("Store Service Error: {}", e.getResponseBodyAsString());
-			throw new GeneralException(ErrorStatus._INTERNAL_SERVER_ERROR);
-		}
-
-		if (!storeExistsResponse.result()) {
-			throw new GeneralException(ErrorStatus.STORE_NOT_FOUND);
-		}
-
 		List<StockRequest> stockRequests = cartItems.stream()
 			.map(StockRequest::from)
 			.toList();
