@@ -24,9 +24,9 @@ spring:
       password: ${REDIS_PASSWORD}
       database: 0
     mongodb:
-      host: localhost
+      host: ${MONGODB:localhost}
       port: 27017
-      database: store-db
+      database: ${MONGO_NAME:store-db}
       username: ${MONGO_INITDB_ROOT_USERNAME}
       password: ${MONGO_INITDB_ROOT_PASSWORD}
       authentication-database: admin
@@ -34,7 +34,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          jwk-set-uri: http://localhost:8083/oauth/jwks
+          jwk-set-uri: ${OAUTH_JWKS_URI:http://localhost:8083/oauth/jwks}
 
 jwt:
   audience:  ${AUTH_INTERNAL_AUDIENCE:internal-services}
@@ -74,7 +74,7 @@ resilience4j:
 
 service:
   store:
-    url: http://localhost:8082
+    url: ${STORE_SVC_URI:http://localhost:8082}
 
 server:
   port: 8084
