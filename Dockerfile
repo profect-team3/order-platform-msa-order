@@ -8,7 +8,7 @@ COPY order-platform-msa-order/build.cloud.gradle ./order-platform-msa-order/buil
 
 RUN ./gradlew :order-platform-msa-order:bootJar -x test
 
-FROM eclipse-temurin:17-jre-slim
+FROM eclipse-temurin:17-jre-jammy
 WORKDIR /app
 
 COPY --from=builder /workspace/order-platform-msa-order/build/libs/*-boot.jar /app/application.jar
