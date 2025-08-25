@@ -62,12 +62,16 @@ dependencies {
     annotationProcessor "org.projectlombok:lombok"
 
     // === 공통 모듈(JAR) ===
-    implementation files("libs/msa-common-security-1.0.7-plain.jar")
+    implementation files("libs/msa-common-security-1.0.8-plain.jar")
 
     // === Test ===
     testImplementation "org.springframework.boot:spring-boot-starter-test"
     testImplementation "org.springframework.security:spring-security-test"
     testRuntimeOnly   "org.junit.platform:junit-platform-launcher"
+
+    // Actuator
+    implementation "org.springframework.boot:spring-boot-starter-actuator"
+
 }
 
 clean {
