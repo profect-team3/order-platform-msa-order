@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import app.domain.order.model.dto.request.CreateOrderRequest;
@@ -32,6 +33,7 @@ import lombok.RequiredArgsConstructor;
 
 @Tag(name = "order", description = "주문 관련 API")
 @RestController
+@RequestMapping("/order")
 @RequiredArgsConstructor
 public class OrderController {
 
