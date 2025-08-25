@@ -43,12 +43,15 @@ dependencies {
     implementation 'org.redisson:redisson-spring-boot-starter:3.24.3'
 
     // security
-    implementation files('libs/msa-common-security-1.0.8-plain.jar')
+    implementation files('libs/msa-common-security-1.0.9-plain.jar')
     implementation "org.springframework.boot:spring-boot-starter-security"
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
 
     // cloud
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+
+    // kafka
+    implementation 'org.springframework.kafka:spring-kafka'
 
     // circuit-breaker
     implementation 'io.github.resilience4j:resilience4j-spring-boot3'

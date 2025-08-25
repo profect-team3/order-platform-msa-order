@@ -39,6 +39,22 @@ spring:
 jwt:
   audience:  ${AUTH_INTERNAL_AUDIENCE:internal-services}
 
+kafka:
+  bootstrap-servers: localhost:9092
+  producer:
+    key-serializer: org.apache.kafka.common.serialization.StringSerializer
+    value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    properties:
+      spring.json.add.type.headers: true
+  consumer:
+    group-id: discord-notifier-group
+    key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+    properties:
+      spring.json.trusted.packages: "*"
+      spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
+  
+
 logging:
   level:
     org:

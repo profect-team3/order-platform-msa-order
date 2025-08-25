@@ -58,6 +58,7 @@ public class OrderService {
 	private final ObjectMapper objectMapper;
 	private final InternalStoreClient internalStoreClient;
 	private final TokenPrincipalParser tokenPrincipalParser;
+	private final KafkaProducerService kafkaProducerService;
 
 	@Transactional
 	public UUID createOrder(Authentication authentication,CreateOrderRequest request) {
@@ -142,6 +143,8 @@ public class OrderService {
 			.build();
 
 		Orders savedOrder = ordersRepository.save(order);
+
+		kafkaProducerService.sendMessage("order-created-events", savedOrder);
 
 		for (RedisCartItem cartItem : cartItems) {
 			MenuInfoResponse menu = menuMap.get(cartItem.getMenuId());

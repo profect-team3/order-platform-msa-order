@@ -20,12 +20,14 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
 @Table(name = "p_orders")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Orders extends BaseEntity {
 	@Id
 	@GeneratedValue
