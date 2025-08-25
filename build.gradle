@@ -25,7 +25,6 @@ configurations {
 }
 
 dependencies {
-    implementation platform("org.springframework.cloud:spring-cloud-dependencies:${rootProject.ext.springCloudVersion}")
     // core
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
@@ -48,6 +47,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
 
     // cloud
+    implementation platform("org.springframework.cloud:spring-cloud-dependencies:${rootProject.ext.springCloudVersion}")
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 
     // circuit-breaker
