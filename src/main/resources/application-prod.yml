@@ -26,7 +26,7 @@ jwt:
 
 discord:
   webhook:
-    url: ${DISCORD_URL}
+    url: "https://discord.com/api/webhooks/1406866286629355540/Y4r06Y2UIA5IjkrG_JqWC1P_u0xC9GuTmdR0N-ji6eQiuNDsyu_wToA0RcEAjhlWpSEU"
 
 service:
   store:
