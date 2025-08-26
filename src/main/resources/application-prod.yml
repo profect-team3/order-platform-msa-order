@@ -12,7 +12,7 @@ spring:
 
     mongodb:
       host: ${MONGODB}
-      database: ${MONGO_NAME}
+      database: ${MONGO_NAME:store-db}
       username: ${MONGO_INITDB_ROOT_USERNAME}
       password: ${MONGO_INITDB_ROOT_PASSWORD}
   security:
