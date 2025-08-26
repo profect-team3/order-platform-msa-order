@@ -1,25 +1,8 @@
-pluginManagement {
-    repositories {
-        gradlePluginPortal()
-        mavenCentral()
-    }
-}
-
 plugins {
     id 'java'
     id 'org.springframework.boot' version '3.5.4'
     id 'io.spring.dependency-management' version '1.1.7'
 }
-dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-    repositories {
-        mavenCentral()
-        maven { url 'https://repo.spring.io/milestone' }
-        maven { url 'https://repo.spring.io/snapshot' }
-        flatDir { dirs 'libs' }
-    }
-}
-
 
 group = 'goorm.delivery'
 version = '0.0.1-SNAPSHOT'
@@ -49,7 +32,11 @@ dependencies {
 
     //Persistence / DB
     implementation "org.springframework.boot:spring-boot-starter-data-jpa"
-    runtimeOnly   "org.postgresql:postgresql"                // JDBC 드라이버
+        // DB
+    runtimeOnly   "org.postgresql:postgresql"
+
+    // Security / OAuth2
+    implementation files("libs/msa-common-security-1.0.8-plain.jar")                // JDBC 드라이버
     implementation "org.springframework.boot:spring-boot-starter-data-redis"
     implementation "org.springframework.boot:spring-boot-starter-data-mongodb"
     implementation "org.springframework.boot:spring-boot-starter-batch"
