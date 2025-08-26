@@ -67,7 +67,7 @@ class CartControllerTest {
 		when(cartService.addCartItem(any(),any(AddCartItemRequest.class)))
 			.thenReturn(resultMessage);
 
-		mockMvc.perform(post("/item")
+		mockMvc.perform(post("/order/item")
 				.with(csrf())
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(request)))
@@ -86,7 +86,7 @@ class CartControllerTest {
 		UUID storeId = UUID.randomUUID();
 		AddCartItemRequest request = new AddCartItemRequest(menuId, storeId, 0);
 
-		mockMvc.perform(post("/item")
+		mockMvc.perform(post("/order/item")
 				.with(csrf())
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(request)))
@@ -109,7 +109,7 @@ class CartControllerTest {
 		when(cartService.addCartItem(any(),any(AddCartItemRequest.class)))
 			.thenThrow(new GeneralException(CartErrorStatus.CART_REDIS_SAVE_FAILED));
 
-		mockMvc.perform(post("/item")
+		mockMvc.perform(post("/order/item")
 				.with(csrf())
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(request)))
@@ -127,7 +127,7 @@ class CartControllerTest {
 		when(cartService.updateCartItem(any(),any(UUID.class), anyInt()))
 			.thenReturn("사용자 1의 장바구니가 성공적으로 저장되었습니다.");
 
-		mockMvc.perform(patch("/item/{menuId}/{quantity}", menuId, quantity)
+		mockMvc.perform(patch("/order/item/{menuId}/{quantity}", menuId, quantity)
 				.with(csrf()))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.code").value(CartSuccessStatus.CART_ITEM_UPDATED.getCode()))
@@ -144,7 +144,7 @@ class CartControllerTest {
 		when(cartService.removeCartItem(any(),any(UUID.class)))
 			.thenReturn("사용자 1의 장바구니에서 메뉴가 성공적으로 삭제되었습니다.");
 
-		mockMvc.perform(delete("/item/{menuId}", menuId)
+		mockMvc.perform(delete("/order/item/{menuId}", menuId)
 				.with(csrf()))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.code").value(CartSuccessStatus.CART_ITEM_REMOVED.getCode()))
@@ -167,7 +167,7 @@ class CartControllerTest {
 
 		when(cartService.getCartFromCache(any())).thenReturn(cartItems);
 
-		mockMvc.perform(get("/cart"))
+		mockMvc.perform(get("/order/cart"))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.code").value(CartSuccessStatus.CART_RETRIEVED.getCode()))
 			.andExpect(jsonPath("$.message").value(CartSuccessStatus.CART_RETRIEVED.getMessage()))
@@ -187,7 +187,7 @@ class CartControllerTest {
 
 		when(cartService.getCartFromCache(any())).thenReturn(List.of());
 
-		mockMvc.perform(get("/cart"))
+		mockMvc.perform(get("/order/cart"))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.code").value(CartSuccessStatus.CART_RETRIEVED.getCode()))
 			.andExpect(jsonPath("$.message").value(CartSuccessStatus.CART_RETRIEVED.getMessage()))
@@ -204,7 +204,7 @@ class CartControllerTest {
 		when(cartService.getCartFromCache(any()))
 			.thenThrow(new GeneralException(CartErrorStatus.CART_REDIS_LOAD_FAILED));
 
-		mockMvc.perform(get("/cart"))
+		mockMvc.perform(get("/order/cart"))
 			.andExpect(status().isInternalServerError())
 			.andExpect(jsonPath("$.code").value(CartErrorStatus.CART_REDIS_LOAD_FAILED.getCode()))
 			.andExpect(jsonPath("$.message").value(CartErrorStatus.CART_REDIS_LOAD_FAILED.getMessage()));
@@ -217,7 +217,7 @@ class CartControllerTest {
 		when(cartService.clearCartItems(any()))
 			.thenReturn("사용자 1의 장바구니가 성공적으로 비워졌습니다.");
 
-		mockMvc.perform(delete("/item")
+		mockMvc.perform(delete("/order/item")
 				.with(csrf()))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.code").value(CartSuccessStatus.CART_CLEARED.getCode()))
@@ -233,7 +233,7 @@ class CartControllerTest {
 		when(cartService.clearCartItems(any()))
 			.thenThrow(new GeneralException(CartErrorStatus.CART_REDIS_SAVE_FAILED));
 
-		mockMvc.perform(delete("/item")
+		mockMvc.perform(delete("/order/item")
 				.with(csrf()))
 			.andExpect(status().isInternalServerError())
 			.andExpect(jsonPath("$.code").value(CartErrorStatus.CART_REDIS_SAVE_FAILED.getCode()))
@@ -245,7 +245,7 @@ class CartControllerTest {
 	void addItemToCart_InvalidJson() throws Exception {
 		String invalidJson = "{\"menuId\": \"invalid-uuid\", \"storeId\": \"valid-uuid\", \"quantity\": 2}";
 
-		mockMvc.perform(post("/item")
+		mockMvc.perform(post("/order/item")
 				.with(csrf())
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(invalidJson))
@@ -259,7 +259,7 @@ class CartControllerTest {
 	void addItemToCart_MissingMenuId() throws Exception {
 		String jsonWithoutMenuId = "{\"storeId\": \"" + UUID.randomUUID() + "\", \"quantity\": 2}";
 
-		mockMvc.perform(post("/item")
+		mockMvc.perform(post("/order/item")
 				.with(csrf())
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(jsonWithoutMenuId))
@@ -276,7 +276,7 @@ class CartControllerTest {
 	void addItemToCart_MissingStoreId() throws Exception {
 		String jsonWithoutStoreId = "{\"menuId\": \"" + UUID.randomUUID() + "\", \"quantity\": 2}";
 
-		mockMvc.perform(post("/item")
+		mockMvc.perform(post("/order/item")
 				.with(csrf())
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(jsonWithoutStoreId))
@@ -294,7 +294,7 @@ class CartControllerTest {
 		String jsonWithoutQuantity =
 			"{\"menuId\": \"" + UUID.randomUUID() + "\", \"storeId\": \"" + UUID.randomUUID() + "\"}";
 
-		mockMvc.perform(post("/item")
+		mockMvc.perform(post("/order/item")
 				.with(csrf())
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(jsonWithoutQuantity))
