@@ -60,6 +60,24 @@ public class OrderService {
 	private final TokenPrincipalParser tokenPrincipalParser;
 	private final KafkaProducerService kafkaProducerService;
 
+	/**
+	 * 인증된 사용자로부터 장바구니를 기반으로 주문을 생성하고 주문 ID를 반환합니다.
+	 *
+	 * <p>동작 요약:
+	 * - 인증 정보에서 사용자 ID를 추출하고 캐시된 장바구니를 조회합니다. 장바구니가 비어있거나
+	 *   서로 다른 상점의 아이템이 섞여 있으면 예외를 던집니다.
+	 * - 상점 존재 여부 및 메뉴 정보를 내부 스토어 서비스에서 검증하고, 장바구니 합계와 요청 총액이 일치하는지 확인합니다.
+	 * - 재고를 감소시키는 외부 호출을 수행하여 재고가 충분한지 확인합니다.
+	 * - 모든 검증이 완료되면 Orders 및 관련 OrderItem 엔티티를 저장하고, 주문 생성 이벤트를 Kafka로 발행합니다.
+	 * - 환불 가능 상태 비활성화 작업을 예약합니다.
+	 *
+	 * @param authentication 인증된 사용자의 Spring Security Authentication 객체
+	 * @param request 주문 생성 요청 데이터 (결제 방식, 총액, 배달 주소 등)
+	 * @return 생성된 주문의 UUID
+	 * @throws GeneralException 다음과 같은 ErrorStatus로 실패할 수 있습니다:
+	 *         CART_NOT_FOUND, ORDER_DIFFERENT_STORE, STORE_NOT_FOUND, MENU_NOT_FOUND,
+	 *         ORDER_PRICE_MISMATCH, OUT_OF_STOCK, _INTERNAL_SERVER_ERROR
+	 */
 	@Transactional
 	public UUID createOrder(Authentication authentication,CreateOrderRequest request) {
 		String userIdStr = tokenPrincipalParser.getUserId(authentication);
