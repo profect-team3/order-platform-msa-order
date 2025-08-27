@@ -11,7 +11,7 @@ spring:
   #     password: ${REDIS_PASSWORD}
 
     mongodb:
-      host: ${MONGODB}
+      host: ${MONGODB_HOST}
       database: ${MONGO_NAME:store-db}
       username: ${MONGO_INITDB_ROOT_USERNAME}
       password: ${MONGO_INITDB_ROOT_PASSWORD}
