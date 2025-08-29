@@ -18,7 +18,7 @@ FROM eclipse-temurin:17-jre-jammy
 
 WORKDIR /app
 
-RUN sudo apt update && sudo apt install wget
+RUN apt update && apt install wget
 RUN wget https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem
 
 COPY --from=builder /workspace/build/libs/*.jar /app/application.jar
