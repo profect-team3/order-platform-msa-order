@@ -7,7 +7,8 @@ spring:
 data:
   mongodb:
     uri:
-      mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@${MONGODB}:${MONGO_PORT}/${MONGO_NAME}?ssl=true&replicaSet=rs0&retryWrites=false
+      uri: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@${MONGO_HOST}:27017/${MONGO_NAME}?tls=true&tlsCAFile=/app/global-bundle.pem&replicaSet=rs0&readPreference=secondaryPreferred&retryWrites=false
+
     ssl:
       enabled: true
       trust-store: /app/certs/truststore.jks # Docker 컨테이너 내부 경로
