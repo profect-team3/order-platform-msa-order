@@ -18,11 +18,8 @@ FROM eclipse-temurin:17-jre-jammy
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y wget && \
-    wget https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem -O /tmp/global-bundle.pem
-RUN mkdir -p /app/certs
-RUN keytool -import -alias docdb-cert -file /tmp/global-bundle.pem -keystore /app/certs/truststore.jks -storepass Goorm3project -noprompt
-RUN rm /tmp/global-bundle.pem
+RUN sudo apt update && sudo apt install wget
+RUN wget https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem
 
 COPY --from=builder /workspace/build/libs/*.jar /app/application.jar
 
