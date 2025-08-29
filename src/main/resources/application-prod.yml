@@ -10,11 +10,15 @@ spring:
   #     port: ${REDIS_PORT}
   #     password: ${REDIS_PASSWORD}
 
-    mongodb:
-      host: ${MONGODB_HOST}
-      database: ${MONGO_NAME:store-db}
-      username: ${MONGO_INITDB_ROOT_USERNAME}
-      password: ${MONGO_INITDB_ROOT_PASSWORD}
+data:
+  mongodb:
+    uri:
+      mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@${MONGODB}:${MONGO_PORT}/${MONGO_NAME}?ssl=true&replicaSet=rs0&retryWrites=false
+    ssl:
+      enabled: true
+      trust-store: /app/certs/truststore.jks # Docker 컨테이너 내부 경로
+      trust-store-password: Goorm3project # Dockerfile에서 설정한 암호
+
   security:
     oauth2:
       resourceserver:
