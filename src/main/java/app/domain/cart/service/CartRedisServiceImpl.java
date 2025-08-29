@@ -13,9 +13,9 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import app.commonUtil.apiPayload.exception.GeneralException;
 import app.domain.cart.model.dto.RedisCartItem;
 import app.domain.cart.status.CartErrorStatus;
-import app.global.apiPayload.exception.GeneralException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

@@ -8,10 +8,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import app.commonUtil.apiPayload.ApiResponse;
 import app.domain.order.model.dto.request.CreateOrderRequest;
 import app.domain.order.service.OrderMcpService;
 import app.domain.order.status.OrderSuccessStatus;
-import app.global.apiPayload.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 

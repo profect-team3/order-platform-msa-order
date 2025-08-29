@@ -18,7 +18,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.Authentication;
 import org.springframework.test.context.ActiveProfiles;
 
-import app.commonSecurity.TokenPrincipalParser;
+import app.commonUtil.apiPayload.ApiResponse;
+import app.commonUtil.apiPayload.code.status.ErrorStatus;
+import app.commonUtil.apiPayload.code.status.SuccessStatus;
+import app.commonUtil.apiPayload.exception.GeneralException;
+import app.commonUtil.security.TokenPrincipalParser;
 import app.domain.cart.model.dto.RedisCartItem;
 import app.domain.cart.service.CartService;
 import app.domain.order.client.InternalStoreClient;
@@ -35,10 +39,6 @@ import app.domain.order.model.repository.OrdersRepository;
 import app.domain.order.service.OrderDelayService;
 import app.domain.order.service.OrderService;
 import app.domain.order.status.OrderErrorStatus;
-import app.global.apiPayload.ApiResponse;
-import app.global.apiPayload.code.status.ErrorStatus;
-import app.global.apiPayload.code.status.SuccessStatus;
-import app.global.apiPayload.exception.GeneralException;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("OrderService Test")

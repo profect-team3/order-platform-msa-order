@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestTemplate;
 
-import app.commonSecurity.TokenPrincipalParser;
+import app.commonUtil.security.TokenPrincipalParser;
 import lombok.RequiredArgsConstructor;
 
 @Configuration
