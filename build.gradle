@@ -20,7 +20,6 @@ configurations {
 }
 
 dependencies {
-    implementation platform("org.springframework.cloud:spring-cloud-dependencies:2025.0.0")
     // core
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
@@ -38,11 +37,12 @@ dependencies {
     implementation 'org.redisson:redisson-spring-boot-starter:3.24.3'
 
     // security
-    implementation files('libs/msa-common-util-1.0.1-plain.jar')
+    implementation files('libs/msa-common-util-1.0.2-plain.jar')
     implementation "org.springframework.boot:spring-boot-starter-security"
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
 
     // cloud
+    implementation platform("org.springframework.cloud:spring-cloud-dependencies:2025.0.0")
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 
     // circuit-breaker
@@ -66,7 +66,6 @@ dependencies {
 clean {
     delete file('src/main/generated')
 }
-
 
 tasks.named('test') {
     useJUnitPlatform()

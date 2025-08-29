@@ -15,6 +15,16 @@ docker run --name order \
     -e DB_PASSWORD=password \
     -e OAUTH_JWKS_URI=http://host.docker.internal:8083/oauth/jwks \
     -e AUTH_INTERNAL_AUDIENCE=internal-services \
+    -e MONGO_INITDB_ROOT_USERNAME \
+    -e MONGO_INITDB_ROOT_PASSWORD \
+    -e MONGODB=mongodb \
+    -e MONGO_PORT=27017 \
+    -e MONGO_NAME=store-db \
+    -e REDIS_HOST=redis \
+    -e REDIS_PORT=6379 \
+    -e REDIS_PASSWORD=password \
+    -e REDIS_REFUND_QUEUE=refund-disable-queue \
+    -e STORE_SVC_URI=http://localhost:8082 \
     -d order-platform-msa-order
 
 
