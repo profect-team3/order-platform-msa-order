@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import app.commonUtil.apiPayload.ApiResponse;
+import app.commonUtil.apiPayload.PagedResponse;
 import app.domain.order.model.dto.request.CreateOrderRequest;
 import app.domain.order.model.dto.request.UpdateOrderStatusRequest;
 import app.domain.order.model.dto.response.OrderDetailResponse;
@@ -23,8 +25,6 @@ import app.domain.order.model.dto.response.OrderResponse;
 import app.domain.order.model.dto.response.UpdateOrderStatusResponse;
 import app.domain.order.service.OrderService;
 import app.domain.order.status.OrderSuccessStatus;
-import app.global.apiPayload.ApiResponse;
-import app.global.apiPayload.PagedResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;

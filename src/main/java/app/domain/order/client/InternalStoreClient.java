@@ -8,14 +8,9 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
-import app.global.apiPayload.ApiResponse;
-import app.global.apiPayload.code.status.ErrorStatus;
-import app.global.apiPayload.exception.GeneralException;
-
+import app.commonUtil.apiPayload.ApiResponse;
 import app.domain.order.model.dto.response.MenuInfoResponse;
 import app.domain.order.model.dto.request.StockRequest;
 import lombok.RequiredArgsConstructor;
