@@ -22,14 +22,14 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/batch")
+@RequestMapping("/order/batch")
 public class OrderBatchController {
 
     private final JobLauncher jobLauncher;
     @Qualifier("orderSyncJob")
     private final Job orderMigrationJob;
 
-    @PostMapping("/orders")
+    @PostMapping()
     public ResponseEntity<Map<String, Object>> triggerOrderMigration() {
         Map<String, Object> response = new HashMap<>();
         try {

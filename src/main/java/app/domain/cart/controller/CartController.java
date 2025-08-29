@@ -27,7 +27,7 @@ import lombok.RequiredArgsConstructor;
 @Tag(name = "cart", description = "장바구니 관련 API")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping
+@RequestMapping("/order")
 @PreAuthorize("hasRole('CUSTOMER')")
 public class CartController {
 	private final CartService cartService;
