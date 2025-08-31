@@ -9,10 +9,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import app.commonUtil.apiPayload.ApiResponse;
 import app.domain.order.model.dto.response.OrderInfoResponse;
 import app.domain.order.model.dto.response.StoreOrderInfo;
 import app.domain.order.status.OrderSuccessStatus;
-import app.global.apiPayload.ApiResponse;
 import lombok.RequiredArgsConstructor;
 
 @RestController

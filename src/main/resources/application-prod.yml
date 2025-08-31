@@ -4,17 +4,21 @@ spring:
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
 
-  data:
-    redis:
-      host: ${REDIS_HOST}
-      port: ${REDIS_PORT}
-      password: ${REDIS_PASSWORD}
+data:
+  mongodb:
+    uri:
+      uri: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@${MONGO_HOST}:27017/${MONGO_NAME}?tls=true&tlsCAFile=/app/global-bundle.pem&replicaSet=rs0&readPreference=secondaryPreferred&retryWrites=false
 
-    mongodb:
-      host: ${MONGODB}
-      database: ${MONGO_NAME}
-      username: ${MONGO_INITDB_ROOT_USERNAME}
-      password: ${MONGO_INITDB_ROOT_PASSWORD}
+    ssl:
+      enabled: true
+      trust-store: /app/certs/truststore.jks # Docker 컨테이너 내부 경로
+      trust-store-password: Goorm3project # Dockerfile에서 설정한 암호
+
+  redis:
+    host: ${REDIS_HOST}
+    port: ${REDIS_PORT}
+    password: ${REDIS_PASSWORD}
+
   security:
     oauth2:
       resourceserver:
@@ -26,7 +30,7 @@ jwt:
 
 discord:
   webhook:
-    url: ${DISCORD_URL}
+    url: "https://discord.com/api/webhooks/1406866286629355540/Y4r06Y2UIA5IjkrG_JqWC1P_u0xC9GuTmdR0N-ji6eQiuNDsyu_wToA0RcEAjhlWpSEU"
 
 service:
   store:

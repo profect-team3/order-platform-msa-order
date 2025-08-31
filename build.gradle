@@ -13,11 +13,6 @@ java {
     }
 }
 
-ext {
-    querydslVersion = '5.0.0'
-}
-
-
 configurations {
     compileOnly {
         extendsFrom annotationProcessor
@@ -25,7 +20,6 @@ configurations {
 }
 
 dependencies {
-    implementation platform("org.springframework.cloud:spring-cloud-dependencies:${rootProject.ext.springCloudVersion}")
     // core
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
@@ -37,17 +31,18 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
     runtimeOnly 'org.postgresql:postgresql'
     implementation 'com.querydsl:querydsl-jpa:5.1.0:jakarta'
-    annotationProcessor "com.querydsl:querydsl-apt:${dependencyManagement.importedProperties['querydsl.version']}:jakarta"
+    annotationProcessor "com.querydsl:querydsl-apt:5.1.0:jakarta"
     annotationProcessor "jakarta.annotation:jakarta.annotation-api"
     annotationProcessor "jakarta.persistence:jakarta.persistence-api"
     implementation 'org.redisson:redisson-spring-boot-starter:3.24.3'
 
-    // security
-    implementation files('libs/msa-common-security-1.0.9-plain.jar')
+
+    implementation files('libs/msa-common-util-1.0.2-plain.jar')
     implementation "org.springframework.boot:spring-boot-starter-security"
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
 
     // cloud
+    implementation platform("org.springframework.cloud:spring-cloud-dependencies:2025.0.0")
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 
     // kafka
@@ -74,7 +69,6 @@ dependencies {
 clean {
     delete file('src/main/generated')
 }
-
 
 tasks.named('test') {
     useJUnitPlatform()

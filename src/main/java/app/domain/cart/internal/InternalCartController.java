@@ -2,13 +2,12 @@ package app.domain.cart.internal;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import app.commonUtil.apiPayload.ApiResponse;
 import app.domain.cart.service.CartService;
 import app.domain.cart.status.CartSuccessStatus;
-import app.global.apiPayload.ApiResponse;
 import lombok.RequiredArgsConstructor;
 
 @RestController

@@ -14,6 +14,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import app.commonUtil.apiPayload.PagedResponse;
+import app.commonUtil.apiPayload.code.status.ErrorStatus;
+import app.commonUtil.apiPayload.exception.GeneralException;
 import app.domain.order.controller.OrderController;
 import app.domain.order.model.dto.request.CreateOrderRequest;
 import app.domain.order.model.dto.request.UpdateOrderStatusRequest;
@@ -26,9 +29,6 @@ import app.domain.order.model.entity.enums.PaymentMethod;
 import app.domain.order.model.entity.enums.ReceiptMethod;
 import app.domain.order.service.OrderService;
 import app.domain.order.status.OrderSuccessStatus;
-import app.global.apiPayload.PagedResponse;
-import app.global.apiPayload.code.status.ErrorStatus;
-import app.global.apiPayload.exception.GeneralException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.UUID;
@@ -89,7 +89,7 @@ class OrderControllerTest {
 		given(orderService.createOrder(any(), any(CreateOrderRequest.class)))
 			.willReturn(orderId);
 
-		mockMvc.perform(post("/")
+		mockMvc.perform(post("/order")
 				.with(csrf())
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(request)))
@@ -113,7 +113,7 @@ class OrderControllerTest {
 			"서울시 강남구"
 		);
 
-		mockMvc.perform(post("/")
+		mockMvc.perform(post("/order")
 				.with(csrf())
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(request)))
@@ -140,7 +140,7 @@ class OrderControllerTest {
 		given(orderService.createOrder(any(), any(CreateOrderRequest.class)))
 			.willThrow(new GeneralException(ErrorStatus._INTERNAL_SERVER_ERROR));
 
-		mockMvc.perform(post("/")
+		mockMvc.perform(post("/order")
 				.with(csrf())
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(request)))
@@ -168,7 +168,7 @@ class OrderControllerTest {
 
 		given(orderService.getOrderDetail(orderId)).willReturn(response);
 
-		mockMvc.perform(get("/{orderId}", orderId))
+		mockMvc.perform(get("/order/{orderId}", orderId))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.code").value(OrderSuccessStatus.ORDER_DETAIL_FETCHED.getCode()))
 			.andExpect(jsonPath("$.message").value(OrderSuccessStatus.ORDER_DETAIL_FETCHED.getMessage()))
@@ -196,7 +196,7 @@ class OrderControllerTest {
 		given(orderService.getOrderDetail(orderId))
 			.willThrow(new GeneralException(ErrorStatus.ORDER_NOT_FOUND));
 
-		mockMvc.perform(get("/{orderId}", orderId))
+		mockMvc.perform(get("/order/{orderId}", orderId))
 			.andExpect(status().isNotFound())
 			.andExpect(jsonPath("$.code").value(ErrorStatus.ORDER_NOT_FOUND.getCode()))
 			.andExpect(jsonPath("$.message").value(ErrorStatus.ORDER_NOT_FOUND.getMessage()));
@@ -212,7 +212,7 @@ class OrderControllerTest {
 		given(orderService.getOrderDetail(orderId))
 			.willThrow(new GeneralException(ErrorStatus._INTERNAL_SERVER_ERROR));
 
-		mockMvc.perform(get("/{orderId}", orderId))
+		mockMvc.perform(get("/order/{orderId}", orderId))
 			.andExpect(status().isInternalServerError())
 			.andExpect(jsonPath("$.code").value(ErrorStatus._INTERNAL_SERVER_ERROR.getCode()))
 			.andExpect(jsonPath("$.message").value(ErrorStatus._INTERNAL_SERVER_ERROR.getMessage()));
@@ -225,7 +225,7 @@ class OrderControllerTest {
 	void createOrder_MissingPaymentMethod() throws Exception {
 		String jsonWithoutPaymentMethod = "{\"orderChannel\": \"ONLINE\", \"receiptMethod\": \"DELIVERY\", \"totalPrice\": 10000, \"deliveryAddress\": \"서울시 강남구\"}";
 
-		mockMvc.perform(post("/")
+		mockMvc.perform(post("/order")
 				.with(csrf())
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(jsonWithoutPaymentMethod))
@@ -242,7 +242,7 @@ class OrderControllerTest {
 	void createOrder_MissingOrderChannel() throws Exception {
 		String jsonWithoutOrderChannel = "{\"paymentMethod\": \"CREDIT_CARD\", \"receiptMethod\": \"DELIVERY\", \"totalPrice\": 10000, \"deliveryAddress\": \"서울시 강남구\"}";
 
-		mockMvc.perform(post("/")
+		mockMvc.perform(post("/order")
 				.with(csrf())
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(jsonWithoutOrderChannel))
@@ -259,7 +259,7 @@ class OrderControllerTest {
 	void createOrder_MissingReceiptMethod() throws Exception {
 		String jsonWithoutReceiptMethod = "{\"paymentMethod\": \"CREDIT_CARD\", \"orderChannel\": \"ONLINE\", \"totalPrice\": 10000, \"deliveryAddress\": \"서울시 강남구\"}";
 
-		mockMvc.perform(post("/")
+		mockMvc.perform(post("/order")
 				.with(csrf())
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(jsonWithoutReceiptMethod))
@@ -276,7 +276,7 @@ class OrderControllerTest {
 	void createOrder_MissingTotalPrice() throws Exception {
 		String jsonWithoutTotalPrice = "{\"paymentMethod\": \"CREDIT_CARD\", \"orderChannel\": \"ONLINE\", \"receiptMethod\": \"DELIVERY\", \"deliveryAddress\": \"서울시 강남구\"}";
 
-		mockMvc.perform(post("/")
+		mockMvc.perform(post("/order")
 				.with(csrf())
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(jsonWithoutTotalPrice))
@@ -293,7 +293,7 @@ class OrderControllerTest {
 	void createOrder_MissingDeliveryAddress() throws Exception {
 		String jsonWithoutDeliveryAddress = "{\"paymentMethod\": \"CREDIT_CARD\", \"orderChannel\": \"ONLINE\", \"receiptMethod\": \"DELIVERY\", \"totalPrice\": 10000}";
 
-		mockMvc.perform(post("/")
+		mockMvc.perform(post("/order")
 				.with(csrf())
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(jsonWithoutDeliveryAddress))
@@ -310,7 +310,7 @@ class OrderControllerTest {
 	void getOrderDetail_InvalidUUID() throws Exception {
 		String invalidUUID = "invalid-uuid";
 
-		mockMvc.perform(get("/{orderId}", invalidUUID))
+		mockMvc.perform(get("/order/{orderId}", invalidUUID))
 			.andExpect(status().isBadRequest());
 
 		verify(orderService, never()).getOrderDetail(any());
@@ -338,7 +338,7 @@ class OrderControllerTest {
 
 			// when
 			ResultActions resultActions = mockMvc.perform(
-				patch("/{orderId}/status", orderId)
+				patch("/order/{orderId}/status", orderId)
 					.with(csrf())
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(objectMapper.writeValueAsString(request)));
@@ -364,7 +364,7 @@ class OrderControllerTest {
 
 			// when
 			ResultActions resultActions = mockMvc.perform(
-				patch("/{orderId}/status", orderId)
+				patch("/order/{orderId}/status", orderId)
 					.with(csrf())
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(objectMapper.writeValueAsString(request)));
@@ -393,7 +393,7 @@ class OrderControllerTest {
 			given(orderService.getCustomerOrders(any())).willReturn(mockResponse);
 
 			// when
-			ResultActions resultActions = mockMvc.perform(get("")
+			ResultActions resultActions = mockMvc.perform(get("/order")
 				.with(csrf()));
 
 			// then
@@ -415,7 +415,7 @@ class OrderControllerTest {
 				new GeneralException(ErrorStatus.ORDER_NOT_FOUND));
 
 			// when
-			ResultActions resultActions = mockMvc.perform(get("")
+			ResultActions resultActions = mockMvc.perform(get("/order")
 				.with(csrf()));
 
 			// then
@@ -454,7 +454,7 @@ class OrderControllerTest {
 				mockResponse);
 
 			// when
-			ResultActions resultActions = mockMvc.perform(get("/{userId}/order", userId)
+			ResultActions resultActions = mockMvc.perform(get("/order/{userId}/order", userId)
 				.with(csrf()));
 
 			// then

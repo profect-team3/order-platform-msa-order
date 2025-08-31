@@ -11,7 +11,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/orders")
+@RequestMapping("/order")
 public class OrderQueryController {
 
     private final MongoOrderRepository mongoOrderRepository;
