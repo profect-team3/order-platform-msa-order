@@ -3,11 +3,7 @@ spring:
     name: order
   config:
     import: optional:file:.env[.properties]
-  datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/order_platform}
-    username: ${DB_USERNAME:bonun}
-    password: ${DB_PASSWORD:password}
-    driver-class-name: org.postgresql.Driver
+
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
@@ -17,27 +13,6 @@ spring:
         format_sql: true
         show_sql: true
         use_sql_comments: true
-  data:
-    redis:
-      host: ${REDIS_HOST:redis}
-      port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD:password}
-      database: 0
-    mongodb:
-      host: ${MONGODB:mongodb}
-      port: 27017
-      database: ${MONGO_NAME:store-db}
-      username: ${MONGO_INITDB_ROOT_USERNAME:root}
-      password: ${MONGO_INITDB_ROOT_PASSWORD:profectcloud}
-      authentication-database: admin
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          jwk-set-uri: ${OAUTH_JWKS_URI:http://localhost:8083/oauth/jwks}
-
-jwt:
-  audience:  ${AUTH_INTERNAL_AUDIENCE:internal-services}
 
 logging:
   level:
@@ -47,10 +22,6 @@ logging:
           mongodb:
             core:
               MongoTemplate: DEBUG
-
-discord:
-  webhook:
-    url: ${DISCORD_URL:https://discord.com/api/webhooks/1406866286629355540/Y4r06Y2UIA5IjkrG_JqWC1P_u0xC9GuTmdR0N-ji6eQiuNDsyu_wToA0RcEAjhlWpSEU}
 
 resilience4j:
   circuitbreaker:
@@ -71,10 +42,6 @@ resilience4j:
       default:
         timeoutDuration: 6s
         cancelRunningFuture: true
-
-service:
-  store:
-    url: ${STORE_SVC_URI:http://localhost:8082}
 
 server:
   port: 8084

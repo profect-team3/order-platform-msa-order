@@ -19,7 +19,7 @@ public class OrderDelayService {
 
 	private final RedissonClient redissonClient;
 
-	@Value("${REDIS_REFUND_QUEUE}")
+	@Value("${redis.refund.queue}")
 	private String REFUND_DISABLE_QUEUE;
 
 	public void scheduleRefundDisable(UUID orderId) {
