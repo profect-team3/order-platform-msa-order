@@ -22,6 +22,15 @@ public class DiscordNotificationService {
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
 
+    /**
+     * 주문 생성 시 Discord 웹훅으로 알림을 전송합니다.
+     *
+     * <p>디스코드 웹훅 URL(discord.webhook.url)이 설정되어 있지 않으면 알림 전송을 건너뜁니다. 전송 실패 시 예외를 호출자에게 던지지 않고 내부에서 로깅합니다.</p>
+     *
+     * @param orderId   알림에 포함할 주문 ID
+     * @param userId    알림에 포함할 사용자 ID
+     * @param totalPrice 알림에 포함할 주문의 총 가격(문자열 형식)
+     */
     public void sendOrderCreatedNotification(String orderId, String userId, String totalPrice) {
         if (discordWebhookUrl == null || discordWebhookUrl.isEmpty()) {
             log.warn("Discord webhook URL is not configured. Skipping notification.");
