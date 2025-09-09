@@ -11,7 +11,7 @@ spring:
       database: ${MONGO_NAME}
 
     redis:
-      protocol: ${REDIS_PROTOCOL:rediss://}
+      protocol: ${REDIS_PROTOCOL:rediss}
       host: ${REDIS_HOST}
       port: ${REDIS_PORT}
       database: 0
