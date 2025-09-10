@@ -3,6 +3,7 @@ package app.domain.order.service;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -10,6 +11,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
@@ -30,6 +32,8 @@ import app.commonUtil.security.TokenPrincipalParser;
 import app.domain.cart.model.dto.RedisCartItem;
 import app.domain.cart.service.CartService;
 import app.domain.order.client.InternalStoreClient;
+import app.domain.order.kafka.Outbox;
+import app.domain.order.kafka.repository.OutboxRepository;
 import app.domain.order.model.dto.response.MenuInfoResponse;
 import app.domain.order.model.dto.request.CreateOrderRequest;
 import app.domain.order.model.dto.request.StockRequest;
@@ -58,9 +62,66 @@ public class OrderService {
 	private final ObjectMapper objectMapper;
 	private final InternalStoreClient internalStoreClient;
 	private final TokenPrincipalParser tokenPrincipalParser;
+	private final OutboxRepository outboxRepository;
+
+	@Value("${topics.order.create_requested:}")
+	private String orderValidTopic;
 
 	@Transactional
-	public UUID createOrder(Authentication authentication,CreateOrderRequest request) {
+	public UUID createOrder(Authentication authentication, CreateOrderRequest request) {
+		// 1) 식별자/사용자 추출
+		String userIdStr = tokenPrincipalParser.getUserId(authentication);
+		Long userId = Long.parseLong(userIdStr);
+		List<RedisCartItem> cartItems = cartService.getCartFromCache(authentication);
+		if (cartItems.isEmpty()) {
+			throw new GeneralException(ErrorStatus.CART_NOT_FOUND);
+		}
+
+		Orders order = Orders.builder()
+			.userId(userId)
+			.storeId(cartItems.get(0).getStoreId())
+			.paymentMethod(request.getPaymentMethod())
+			.orderChannel(request.getOrderChannel())
+			.receiptMethod(request.getReceiptMethod())
+			.requestMessage(request.getRequestMessage())
+			.totalPrice(request.getTotalPrice())
+			.orderStatus(OrderStatus.PENDING)
+			.deliveryAddress(request.getDeliveryAddress())
+			.orderHistory(
+				"pending:" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+			.isRefundable(true)
+			.build();
+
+
+		Orders orders= ordersRepository.save(order);
+
+
+		Map<String, Object> payload = new HashMap<>();
+		payload.put("userId", userId);
+		payload.put("orderId", orders.getOrdersId());
+		payload.put("totalPrice", orders.getTotalPrice());
+
+		String payloadJson;
+		try {
+			payloadJson = objectMapper.writeValueAsString(payload);
+		} catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+			throw new GeneralException(ErrorStatus._INTERNAL_SERVER_ERROR); // 직렬화 실패는 서버 에러
+		}
+
+		outboxRepository.save(
+			Outbox.pending(
+				orders.getOrdersId().toString(),
+				orderValidTopic,
+				"OrderValidEvent",
+				payloadJson
+			)
+		);
+
+		return orders.getOrdersId();
+	}
+
+	@Transactional
+	public UUID createOrder1(Authentication authentication,CreateOrderRequest request) {
 		String userIdStr = tokenPrincipalParser.getUserId(authentication);
 		Long userId = Long.parseLong(userIdStr);
 		List<RedisCartItem> cartItems = cartService.getCartFromCache(authentication);
