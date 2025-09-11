@@ -72,4 +72,13 @@ topics:
   order:
     create_requested: order.valid.request
     validated: order.valid.result
-    created: or
+    canceled: order.canceled
+    accept: order.accept
+    completed: order.completed
+    dev:
+      completed: dev.order.completed
+  payment:
+    result: payment.result
+  stock:
+    request: stock.request
+    result: stock.result

@@ -22,7 +22,6 @@ public class KafkaTopicConfig {
 
 	@Value("${topics.order.create_requested}") private String tRequested;
 	@Value("${topics.order.validated}") private String tValidated;
-	@Value("${topics.order.created}") private String tCreated;
 
 	@Bean
 	public NewTopic orderCreateRequestedTopic() {
@@ -39,14 +38,6 @@ public class KafkaTopicConfig {
 			.configs(Map.of(
 				TopicConfig.RETENTION_MS_CONFIG, RET_3D,
 				TopicConfig.CLEANUP_POLICY_CONFIG, TopicConfig.CLEANUP_POLICY_DELETE
-			));
-	}
-
-	@Bean
-	public NewTopic orderCreatedTopic() {
-		return new NewTopic(tCreated, PARTITIONS, RF)
-			.configs(Map.of(
-				TopicConfig.RETENTION_MS_CONFIG, RET_3D
 			));
 	}
 
