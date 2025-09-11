@@ -67,9 +67,12 @@ public class OrderService {
 	@Value("${topics.order.create_requested:}")
 	private String orderValidTopic;
 
+
+	@Value("${topics.order.dev.completed}")
+	private String orderCreateTopicDev;
+
 	@Transactional
 	public UUID createOrder(Authentication authentication, CreateOrderRequest request) {
-		// 1) 식별자/사용자 추출
 		String userIdStr = tokenPrincipalParser.getUserId(authentication);
 		Long userId = Long.parseLong(userIdStr);
 		List<RedisCartItem> cartItems = cartService.getCartFromCache(authentication);
@@ -105,7 +108,7 @@ public class OrderService {
 		try {
 			payloadJson = objectMapper.writeValueAsString(payload);
 		} catch (com.fasterxml.jackson.core.JsonProcessingException e) {
-			throw new GeneralException(ErrorStatus._INTERNAL_SERVER_ERROR); // 직렬화 실패는 서버 에러
+			throw new GeneralException(ErrorStatus._INTERNAL_SERVER_ERROR);
 		}
 
 		outboxRepository.save(
@@ -117,108 +120,27 @@ public class OrderService {
 			)
 		);
 
-		return orders.getOrdersId();
-	}
-
-	@Transactional
-	public UUID createOrder1(Authentication authentication,CreateOrderRequest request) {
-		String userIdStr = tokenPrincipalParser.getUserId(authentication);
-		Long userId = Long.parseLong(userIdStr);
-		List<RedisCartItem> cartItems = cartService.getCartFromCache(authentication);
-		if (cartItems.isEmpty()) {
-			throw new GeneralException(ErrorStatus.CART_NOT_FOUND);
-		}
-		UUID storeId = cartItems.get(0).getStoreId();
-		boolean allSameStore = cartItems.stream().allMatch(item -> item.getStoreId().equals(storeId));
-		if (!allSameStore) {
-			throw new GeneralException(OrderErrorStatus.ORDER_DIFFERENT_STORE);
-		}
-		ApiResponse<Boolean> storeExistsResponse;
-		try{
-			storeExistsResponse = internalStoreClient.isStoreExists(storeId);
-		} catch (HttpClientErrorException | HttpServerErrorException e){
-			log.error("Store Service Error: {}", e.getResponseBodyAsString());
-			throw new GeneralException(ErrorStatus._INTERNAL_SERVER_ERROR);
-		}
-
-		if (!storeExistsResponse.result()) {
-			throw new GeneralException(ErrorStatus.STORE_NOT_FOUND);
-		}
-
-
-
-		List<UUID> menuIds = cartItems.stream()
-			.map(RedisCartItem::getMenuId)
-			.toList();
-
-		ApiResponse<List<MenuInfoResponse>> menuInfoResponse;
+		Map<String, Object> payloadDev = new HashMap<>();
+		payload.put("storeId", orders.getStoreId());
+		payload.put("totalPrice", orders.getTotalPrice());
+		String payloadJsonDev;
 		try {
-			menuInfoResponse=internalStoreClient.getMenuInfoList(menuIds);
-		} catch (HttpClientErrorException | HttpServerErrorException e){
-			log.error("Store Service Error: {}", e.getResponseBodyAsString());
-			throw new GeneralException(ErrorStatus.MENU_NOT_FOUND);
-		}
-
-		List<MenuInfoResponse> menuInfoResponseList=menuInfoResponse.result();
-		Map<UUID, MenuInfoResponse> menuMap = menuInfoResponseList.stream()
-			.collect(java.util.stream.Collectors.toMap(MenuInfoResponse::getMenuId, menu -> menu));
-
-		Long calculatedTotalPrice = cartItems.stream()
-			.mapToLong(item -> menuMap.get(item.getMenuId()).getPrice() * item.getQuantity())
-			.sum();
-		if (!calculatedTotalPrice.equals(request.getTotalPrice())) {
-			throw new GeneralException(OrderErrorStatus.ORDER_PRICE_MISMATCH);
-		}
-
-
-		List<StockRequest> stockRequests = cartItems.stream()
-			.map(StockRequest::from)
-			.toList();
-
-		ApiResponse<Boolean> stockCheckResponse;
-		try{
-			stockCheckResponse=decreaseStockWithCircuitBreaker(stockRequests);
-		}catch (HttpServerErrorException|HttpClientErrorException e){
-			log.error("Store Service Error: {}", e.getResponseBodyAsString());
+			payloadJsonDev = objectMapper.writeValueAsString(payloadDev);
+		} catch (com.fasterxml.jackson.core.JsonProcessingException e) {
 			throw new GeneralException(ErrorStatus._INTERNAL_SERVER_ERROR);
 		}
 
-		if(!stockCheckResponse.result()){
-			throw new GeneralException(OrderErrorStatus.OUT_OF_STOCK);
-		}
+		outboxRepository.save(
+			Outbox.pending(
+				orders.getOrdersId().toString(),
+				orderCreateTopicDev,
+				"OrderDevCreateEvent",
+				payloadJsonDev
+			)
+		);
 
-		Orders order = Orders.builder()
-			.userId(userId)
-			.storeId(storeId)
-			.paymentMethod(request.getPaymentMethod())
-			.orderChannel(request.getOrderChannel())
-			.receiptMethod(request.getReceiptMethod())
-			.requestMessage(request.getRequestMessage())
-			.totalPrice(request.getTotalPrice())
-			.orderStatus(OrderStatus.PENDING)
-			.deliveryAddress(request.getDeliveryAddress())
-			.orderHistory(
-				"pending:" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
-			.isRefundable(true)
-			.build();
-
-		Orders savedOrder = ordersRepository.save(order);
-
-		for (RedisCartItem cartItem : cartItems) {
-			MenuInfoResponse menu = menuMap.get(cartItem.getMenuId());
-
-			OrderItem orderItem = OrderItem.builder()
-				.orders(savedOrder)
-				.menuName(menu.getName())
-				.price(menu.getPrice())
-				.quantity(cartItem.getQuantity())
-				.build();
-			orderItemRepository.save(orderItem);
-		}
-
-		orderDelayService.scheduleRefundDisable(savedOrder.getOrdersId());
-
-		return savedOrder.getOrdersId();
+		orderDelayService.scheduleRefundDisable(order.getOrdersId());
+		return orders.getOrdersId();
 	}
 
 	@CircuitBreaker(name = "test")
