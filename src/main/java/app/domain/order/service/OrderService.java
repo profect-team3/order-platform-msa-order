@@ -121,8 +121,8 @@ public class OrderService {
 		);
 
 		Map<String, Object> payloadDev = new HashMap<>();
-		payload.put("storeId", orders.getStoreId());
-		payload.put("totalPrice", orders.getTotalPrice());
+		payloadDev.put("storeId", orders.getStoreId());
+		payloadDev.put("totalPrice", orders.getTotalPrice());
 		String payloadJsonDev;
 		try {
 			payloadJsonDev = objectMapper.writeValueAsString(payloadDev);
