@@ -7,11 +7,11 @@ spring:
 
   data:
     mongodb:
-      uri: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@${MONGO_HOST}:27017/?tls=true&tlsCAFile=/app/global-bundle.pem&replicaSet=rs0&readPreference=secondaryPreferred&retryWrites=false
+      uri: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@${MONGO_HOST}:27017/?ssl=false&replicaSet=rs0&readPreference=secondaryPreferred&retryWrites=false&connectTimeoutMS=60000&socketTimeoutMS=60000&serverSelectionTimeoutMS=60000
       database: ${MONGO_NAME}
 
     redis:
-      protocol: ${REDIS_PROTOCOL:rediss}
+      protocol: ${REDIS_PROTOCOL}
       host: ${REDIS_HOST}
       port: ${REDIS_PORT}
       database: 0
