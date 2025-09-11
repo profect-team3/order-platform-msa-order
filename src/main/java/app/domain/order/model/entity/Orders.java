@@ -8,9 +8,7 @@ import app.commonUtil.entity.BaseEntity;
 import app.domain.order.model.entity.enums.OrderChannel;
 import app.domain.order.model.entity.enums.OrderStatus;
 import app.domain.order.model.entity.enums.PaymentMethod;
-import app.domain.order.model.entity.enums.PaymentStatus;
 import app.domain.order.model.entity.enums.ReceiptMethod;
-import app.domain.order.model.entity.enums.ValidationStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -28,7 +26,6 @@ import lombok.NoArgsConstructor;
 @Table(name = "p_orders")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
 @Builder
 public class Orders extends BaseEntity {
 	@Id
@@ -63,11 +60,6 @@ public class Orders extends BaseEntity {
 	@Enumerated(EnumType.STRING)
 	private OrderStatus orderStatus;
 
-	@Enumerated(EnumType.STRING)
-	private ValidationStatus validationStatus = ValidationStatus.PENDING;
-
-	@Enumerated(EnumType.STRING)
-	private PaymentStatus paymentStatus = PaymentStatus.PENDING;
 
 	@Column(nullable = false)
 	private boolean isRefundable;
@@ -95,12 +87,6 @@ public class Orders extends BaseEntity {
 		this.orderStatus = orderStatus;
 	}
 
-	public void updatePaymentStatus(PaymentStatus paymentStatus) {
-		this.paymentStatus = paymentStatus;
-	}
-	public void updateValidationStatus(ValidationStatus validationStatus) {
-		this.validationStatus = validationStatus;
-	}
 
 	public void addHistory(String state, LocalDateTime dateTime) {
 		String newEntry = state + ":" + dateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
