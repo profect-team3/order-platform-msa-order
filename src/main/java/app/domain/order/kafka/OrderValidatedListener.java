@@ -178,7 +178,7 @@ public class OrderValidatedListener {
 			.orElseThrow(() -> new GeneralException(ErrorStatus.ORDER_NOT_FOUND));
 		if ("success".equals(eventType)) {
 			order.updateOrderStatus(OrderStatus.ACCEPTED);
-
+			ordersRepo.save(order);
 			Map<String, Object> payload = new HashMap<>();
 			payload.put("storeId", order.getStoreId());
 			payload.put("orderTime", order.getUpdatedAt());
