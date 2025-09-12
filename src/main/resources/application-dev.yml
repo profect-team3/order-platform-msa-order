@@ -23,36 +23,29 @@ spring:
       resourceserver:
         jwt:
           jwk-set-uri: ${OAUTH_JWKS_URI:http://localhost:8083/oauth/jwks}
+
+
   kafka:
-    bootstrap-servers: localhost:9092
-    admin:
-      fail-fast: false
-      properties:
-        request.timeout.ms: 30000
-        default.api.timeout.ms: 30000
-        retry.backoff.ms: 500
-    producer:
-      acks: all
-      retries: 10
-      batch-size: 65536          # 64KB 배치
-      linger-ms: 5               # 5ms 대기하여 배치
-      compression-type: lz4      # 또는 zstd
-      properties:
-        enable.idempotence: true # 멱등 프로듀서
-
+    bootstrap-servers:
+      - ${KAFKA_URL1:localhost:9092}
+      - ${KAFKA_URL2:localhost:9094}
+      - ${KAFKA_URL3:localhost:9096}
     consumer:
-      group-id: order-service
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       auto-offset-reset: earliest
-      max-poll-records: 500
-      fetch-min-size: 1048576     # 1MB
-      fetch-max-wait: 500         # 최대 500ms 대기
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      enable-idempotence: true
+      retries: 2
+      acks: all
       properties:
-        max.partition.fetch.bytes: 1048576   # 파티션당 1MB
-        session.timeout.ms: 15000
+        max.in.flight.requests.per.connection: 3
+        min.insync.replicas: 2
+    admin:
+      auto-create: true
 
-    listener:
-      ack-mode: record
-      concurrency: 12             # 파티션 수에 맞춰 조정 (예: 12 파티션이면 12)
 jwt:
   audience:  ${AUTH_INTERNAL_AUDIENCE:internal-services}
 
@@ -73,7 +66,7 @@ topics:
     create_requested: order.valid.request
     validated: order.valid.result
     canceled: order.canceled
-    accept: order.accept
+    approve: order.approve.result
     completed: order.completed
     dev:
       completed: dev.order.completed
