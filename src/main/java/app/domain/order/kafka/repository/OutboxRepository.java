@@ -2,6 +2,7 @@ package app.domain.order.kafka.repository;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.List;
 
@@ -59,4 +60,8 @@ public interface OutboxRepository extends JpaRepository<Outbox, UUID> {
            AND e.updatedAt < :retryBefore
         """)
 	int requeueFailed(@Param("now") LocalDateTime now, @Param("retryBefore") LocalDateTime retryBefore);
+
+
+
+	Optional<Outbox> findByAggregateId(String aggregateId);
 }

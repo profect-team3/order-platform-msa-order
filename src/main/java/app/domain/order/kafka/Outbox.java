@@ -41,6 +41,9 @@ public class Outbox extends BaseEntity {
 
 	public enum Status { PENDING, SENT, FAILED }
 
+	public void updateError(String lastError){
+		this.lastError = lastError;
+	}
 	public static Outbox pending( String aggregateId, String topic,String eventType, String payloadJson) {
 		 return Outbox.builder()
 			 .aggregateId(aggregateId)
