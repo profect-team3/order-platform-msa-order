@@ -86,20 +86,28 @@ public class OrderValidatedListener {
 	@KafkaListener(topics = "${topics.payment.result}",groupId = "payment-result")
 	public void PaymentResult(
 		String message,
-		@Header("orderId") String orderIdStr
+		@Header("orderId") String orderIdStr,
+		@Header("eventType") String eventType
 	) {
-		Map<String, Object> evt;
-		try {
-			evt = objectMapper.readValue(message, Map.class);
+		if ("success".equals(eventType)) {
+			Map<String, Object> evt;
+			try {
+				evt = objectMapper.readValue(message, Map.class);
 
-			Long userId = Long.parseLong(evt.get("userId").toString());
+				Long userId = Long.parseLong(evt.get("userId").toString());
 
-			triggerStockDecrease(UUID.fromString(orderIdStr),userId);
+				triggerStockDecrease(UUID.fromString(orderIdStr), userId);
 
-		} catch (JsonProcessingException e) {
-			throw new GeneralException(ErrorStatus._INTERNAL_SERVER_ERROR);
+			} catch (JsonProcessingException e) {
+				throw new GeneralException(ErrorStatus._INTERNAL_SERVER_ERROR);
+			}
+		}else{
+			Orders order= ordersRepo.findById(UUID.fromString(orderIdStr))
+				.orElseThrow(() -> new GeneralException(ErrorStatus.ORDER_NOT_FOUND));
+			order.updateOrderStatus(OrderStatus.FAILED);
 		}
 	}
+
 
 	private void triggerStockDecrease( UUID orderId,Long userId) {
 		List<RedisCartItem> cartItems= cartRedisService.getCartFromRedis(userId);
