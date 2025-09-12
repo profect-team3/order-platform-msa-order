@@ -65,7 +65,7 @@ topics:
   order:
     create_requested: order.valid.request
     validated: order.valid.result
-    canceled: order.canceled
+    canceled: refund.request
     approve: order.approve.result
     completed: order.completed
     dev:
