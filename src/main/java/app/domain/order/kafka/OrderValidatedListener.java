@@ -1,18 +1,15 @@
 package app.domain.order.kafka;
 
 
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-
 import app.commonUtil.apiPayload.code.status.ErrorStatus;
 import app.commonUtil.apiPayload.exception.GeneralException;
 import app.domain.cart.model.dto.RedisCartItem;
 import app.domain.cart.service.CartRedisService;
-import app.domain.order.kafka.dto.WorkflowEvent;
 import app.domain.order.kafka.repository.OutboxRepository;
 import app.domain.order.model.entity.OrderItem;
 import app.domain.order.model.entity.Orders;
@@ -25,8 +22,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -50,32 +45,18 @@ public class OrderValidatedListener {
 	@Value("${topics.order.completed}")
 	private String orderCompletedTopic;
 
-
-
-
-	@KafkaListener(topics = "${topics.order.validated}")
-	@Transactional
+	@KafkaListener(topics = "${topics.order.validated}",groupId = "order-valid")
 	public void OrderValidated(
 		String message,
 		@Header("orderId") String orderIdStr,
 		@Header("eventType") String eventType
 	) {
 		List<Map<String, Object>> evt;
-
 		try {
 			evt = objectMapper.readValue(message, List.class);
-			System.out.println(evt);
-
 		} catch (JsonProcessingException e) {
-			Map<String, Object> headers = new HashMap<>();
-			headers.put("eventType", "fail");
-			headers.put("orderId", null);
-			Map<String, Object> errorPayload = new HashMap<>();
-			errorPayload.put("errorMessage", "Parse error");
-
-			return;
+			throw new GeneralException(ErrorStatus._INTERNAL_SERVER_ERROR);
 		}
-
 
 		Orders order = ordersRepo.findById(UUID.fromString(orderIdStr))
 			.orElseThrow(() -> new GeneralException(ErrorStatus.ORDER_NOT_FOUND));
@@ -94,57 +75,34 @@ public class OrderValidatedListener {
 				ordersRepo.save(order);
 			}
 		} else {
-			if (order.getOrderStatus() != OrderStatus.CANCELED) {
-				order.updateOrderStatus(OrderStatus.CANCELED);
+			if (order.getOrderStatus() != OrderStatus.FAILED) {
+				order.updateOrderStatus(OrderStatus.FAILED);
 				ordersRepo.save(order);
-				emitOrderCanceled(order, "VALIDATION_FAILED");
 			}
 		}
 	}
 
 
-	@KafkaListener(
-		topics = "${topics.payment.result}"
-	)
-	@Transactional
+	@KafkaListener(topics = "${topics.payment.result}",groupId = "payment-result")
 	public void PaymentResult(
 		String message,
-		@Header("orderId") String orderIdStr,
-		@Header("eventType") String eventType
+		@Header("orderId") String orderIdStr
 	) {
 		Map<String, Object> evt;
 		try {
 			evt = objectMapper.readValue(message, Map.class);
-			System.out.println(evt);
+
+			Long userId = Long.parseLong(evt.get("userId").toString());
+
+			triggerStockDecrease(UUID.fromString(orderIdStr),userId);
 
 		} catch (JsonProcessingException e) {
-			Map<String, Object> headers = new HashMap<>();
-			headers.put("eventType", "fail");
-			headers.put("orderId", null);
-			Map<String, Object> errorPayload = new HashMap<>();
-			errorPayload.put("errorMessage", "Parse error");
-
-			return;
-		}
-
-		Orders order = ordersRepo.findById(UUID.fromString(orderIdStr))
-			.orElseThrow(() -> new GeneralException(ErrorStatus.ORDER_NOT_FOUND));
-
-		if ("success".equals(eventType)) {
-			triggerStockDecrease(order);
-		} else {
-			if (order.getOrderStatus() != OrderStatus.CANCELED) {
-				order.updateOrderStatus(OrderStatus.CANCELED);
-				ordersRepo.save(order);
-				emitOrderCanceled(order, "PAYMENT_FAILED");
-			}
-
+			throw new GeneralException(ErrorStatus._INTERNAL_SERVER_ERROR);
 		}
 	}
 
-	private void triggerStockDecrease(Orders order) {
-		List<RedisCartItem> cartItems= cartRedisService.getCartFromRedis(order.getUserId());
-
+	private void triggerStockDecrease( UUID orderId,Long userId) {
+		List<RedisCartItem> cartItems= cartRedisService.getCartFromRedis(userId);
 		List<Map<String, Object>> payload = new ArrayList<>();
 
 		for (RedisCartItem item : cartItems) {
@@ -154,7 +112,7 @@ public class OrderValidatedListener {
 			payload.add(map);
 		}
 
-		cartRedisService.clearCartItems(order.getUserId());
+		cartRedisService.clearCartItems(userId);
 
 		String payloadJson;
 		try {
@@ -163,40 +121,43 @@ public class OrderValidatedListener {
 			throw new GeneralException(ErrorStatus._INTERNAL_SERVER_ERROR);
 		}
 		outboxRepository.save(Outbox.pending(
-			order.getOrdersId().toString(),
+			orderId.toString(),
 			stockDecreaseRequestTopic,
 			"OrderStockEvent",
 			payloadJson
 		));
-
-		ordersRepo.save(order);
-
 	}
 
-
-
-	@KafkaListener(topics = "${topics.stock.result}")
-	@Transactional
+	@KafkaListener(topics = "${topics.stock.result}",groupId = "stock-result")
 	public void StockResult(
 		@Header("orderId") String orderIdStr,
-		@Header("eventType") String eventType
+		@Header("eventType") String eventType,
+		String message
 	) {
 		Orders order = ordersRepo.findById(UUID.fromString(orderIdStr))
 			.orElseThrow(() -> new GeneralException(ErrorStatus.ORDER_NOT_FOUND));
 		if ("success".equals(eventType)) {
 			order.updateOrderStatus(OrderStatus.ACCEPTED_READY);
 		} else {
-			if (order.getOrderStatus() != OrderStatus.CANCELED) {
-				order.updateOrderStatus(OrderStatus.CANCELED);
+			if (order.getOrderStatus() != OrderStatus.FAILED) {
+
+				Map<String, Object> payloadJson;
+				try {
+					payloadJson = objectMapper.readValue(message,Map.class);
+				} catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+					throw new GeneralException(ErrorStatus._INTERNAL_SERVER_ERROR);
+				}
+				Outbox outbox = outboxRepository.findByAggregateId(orderIdStr).orElseThrow();
+				outbox.updateError(payloadJson.get("errorMessage").toString());
+				order.updateOrderStatus(OrderStatus.FAILED);
 				ordersRepo.save(order);
-				emitOrderCanceled(order, "STOCK_FAILED");
+				emitOrderCanceled(order);
 			}
 
 		}
 	}
 
-	@KafkaListener(topics = "${topics.order.accept}")
-	@Transactional
+	@KafkaListener(topics = "${topics.order.approve}",groupId = "order-approve-result")
 	public void  orderAcceptResult(
 		@Header("orderId") String orderIdStr,
 		@Header("eventType") String eventType
@@ -227,33 +188,25 @@ public class OrderValidatedListener {
 				)
 			);
 		} else {
-			if (order.getOrderStatus() != OrderStatus.CANCELED) {
-				order.updateOrderStatus(OrderStatus.CANCELED);
+			if (order.getOrderStatus() != OrderStatus.REJECTED) {
+				order.updateOrderStatus(OrderStatus.REJECTED);
 				ordersRepo.save(order);
-				emitOrderCanceled(order, "ACCEPT_FAILED");
+				emitOrderCanceled(order);
 			}
-
 		}
 	}
 
-	private void emitOrderCanceled(Orders order, String reason) {
+	private void emitOrderCanceled(Orders order) {
 		Map<String, Object> payload = Map.of(
-			"orderId", order.getOrdersId(),
-			"reason", reason,
-			"occurredAt", Instant.now()
+			"userId", order.getUserId()
 		);
-		WorkflowEvent ev = WorkflowEvent.builder()
-			.aggregateId(order.getOrdersId())
-			.status("FAILED")
-			.payload(List.of(payload))
-			.build();
 		try {
-			String payLoadJson = objectMapper.writeValueAsString(ev);
+			String payLoadJson = objectMapper.writeValueAsString(payload);
 			outboxRepository.save(
 				Outbox.pending(
 					order.getOrdersId().toString(),
 					orderCanceledTopic,
-					"OrderCanceledEvent",
+					"orderCancelEvent",
 					payLoadJson
 				)
 			);
