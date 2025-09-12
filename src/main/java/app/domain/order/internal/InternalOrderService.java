@@ -51,7 +51,11 @@ public class InternalOrderService {
     public OrderInfoResponse getOrderInfo(UUID orderId) {
         Orders order = ordersRepository.findById(orderId)
             .orElseThrow(() -> new GeneralException(ErrorStatus.ORDER_NOT_FOUND));
-        
+
+        if(!order.getOrderStatus().equals(OrderStatus.ACCEPTED_READY)){
+            throw new GeneralException(OrderErrorStatus.INVALID_ORDER_REQUEST);
+        }
+
         return new OrderInfoResponse(
             order.getOrdersId(),
             order.getStoreId(),
