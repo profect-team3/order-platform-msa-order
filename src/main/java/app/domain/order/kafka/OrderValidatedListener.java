@@ -138,6 +138,7 @@ public class OrderValidatedListener {
 			.orElseThrow(() -> new GeneralException(ErrorStatus.ORDER_NOT_FOUND));
 		if ("success".equals(eventType)) {
 			order.updateOrderStatus(OrderStatus.ACCEPTED_READY);
+			ordersRepo.save(order);
 		} else {
 			if (order.getOrderStatus() != OrderStatus.FAILED) {
 
@@ -147,8 +148,11 @@ public class OrderValidatedListener {
 				} catch (com.fasterxml.jackson.core.JsonProcessingException e) {
 					throw new GeneralException(ErrorStatus._INTERNAL_SERVER_ERROR);
 				}
-				Outbox outbox = outboxRepository.findByAggregateId(orderIdStr).orElseThrow();
-				outbox.updateError(payloadJson.get("errorMessage").toString());
+				List<Outbox> outbox = outboxRepository.findByAggregateId(orderIdStr);
+				for(Outbox outboxItem : outbox) {
+					outboxItem.updateError(payloadJson.get("errorMessage").toString());
+					outboxRepository.save(outboxItem);
+				}
 				order.updateOrderStatus(OrderStatus.FAILED);
 				ordersRepo.save(order);
 				emitOrderCanceled(order);

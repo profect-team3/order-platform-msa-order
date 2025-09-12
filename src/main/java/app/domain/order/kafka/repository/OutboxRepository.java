@@ -63,5 +63,5 @@ public interface OutboxRepository extends JpaRepository<Outbox, UUID> {
 
 
 
-	Optional<Outbox> findByAggregateId(String aggregateId);
+	List<Outbox> findByAggregateId(String aggregateId);
 }
