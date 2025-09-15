@@ -52,7 +52,7 @@ public class InternalOrderService {
         Orders order = ordersRepository.findById(orderId)
             .orElseThrow(() -> new GeneralException(ErrorStatus.ORDER_NOT_FOUND));
 
-        if(!order.getOrderStatus().equals(OrderStatus.ACCEPTED_READY)){
+        if(!order.getOrderStatus().equals(OrderStatus.CREATED)){
             throw new GeneralException(OrderErrorStatus.INVALID_ORDER_REQUEST);
         }
 
