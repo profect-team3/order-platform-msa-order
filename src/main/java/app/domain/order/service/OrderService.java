@@ -3,6 +3,7 @@ package app.domain.order.service;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -10,6 +11,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
@@ -30,6 +32,8 @@ import app.commonUtil.security.TokenPrincipalParser;
 import app.domain.cart.model.dto.RedisCartItem;
 import app.domain.cart.service.CartService;
 import app.domain.order.client.InternalStoreClient;
+import app.domain.order.kafka.Outbox;
+import app.domain.order.kafka.repository.OutboxRepository;
 import app.domain.order.model.dto.response.MenuInfoResponse;
 import app.domain.order.model.dto.request.CreateOrderRequest;
 import app.domain.order.model.dto.request.StockRequest;
@@ -58,77 +62,27 @@ public class OrderService {
 	private final ObjectMapper objectMapper;
 	private final InternalStoreClient internalStoreClient;
 	private final TokenPrincipalParser tokenPrincipalParser;
+	private final OutboxRepository outboxRepository;
+
+	@Value("${topics.order.create_requested:}")
+	private String orderValidTopic;
+
+
+	@Value("${topics.order.dev.completed}")
+	private String orderCreateTopicDev;
 
 	@Transactional
-	public UUID createOrder(Authentication authentication,CreateOrderRequest request) {
+	public UUID createOrder(Authentication authentication, CreateOrderRequest request) {
 		String userIdStr = tokenPrincipalParser.getUserId(authentication);
 		Long userId = Long.parseLong(userIdStr);
 		List<RedisCartItem> cartItems = cartService.getCartFromCache(authentication);
 		if (cartItems.isEmpty()) {
 			throw new GeneralException(ErrorStatus.CART_NOT_FOUND);
 		}
-		UUID storeId = cartItems.get(0).getStoreId();
-		boolean allSameStore = cartItems.stream().allMatch(item -> item.getStoreId().equals(storeId));
-		if (!allSameStore) {
-			throw new GeneralException(OrderErrorStatus.ORDER_DIFFERENT_STORE);
-		}
-		ApiResponse<Boolean> storeExistsResponse;
-		try{
-			storeExistsResponse = internalStoreClient.isStoreExists(storeId);
-		} catch (HttpClientErrorException | HttpServerErrorException e){
-			log.error("Store Service Error: {}", e.getResponseBodyAsString());
-			throw new GeneralException(ErrorStatus._INTERNAL_SERVER_ERROR);
-		}
-
-		if (!storeExistsResponse.result()) {
-			throw new GeneralException(ErrorStatus.STORE_NOT_FOUND);
-		}
-
-
-
-		List<UUID> menuIds = cartItems.stream()
-			.map(RedisCartItem::getMenuId)
-			.toList();
-
-		ApiResponse<List<MenuInfoResponse>> menuInfoResponse;
-		try {
-			menuInfoResponse=internalStoreClient.getMenuInfoList(menuIds);
-		} catch (HttpClientErrorException | HttpServerErrorException e){
-			log.error("Store Service Error: {}", e.getResponseBodyAsString());
-			throw new GeneralException(ErrorStatus.MENU_NOT_FOUND);
-		}
-
-		List<MenuInfoResponse> menuInfoResponseList=menuInfoResponse.result();
-		Map<UUID, MenuInfoResponse> menuMap = menuInfoResponseList.stream()
-			.collect(java.util.stream.Collectors.toMap(MenuInfoResponse::getMenuId, menu -> menu));
-
-		Long calculatedTotalPrice = cartItems.stream()
-			.mapToLong(item -> menuMap.get(item.getMenuId()).getPrice() * item.getQuantity())
-			.sum();
-		if (!calculatedTotalPrice.equals(request.getTotalPrice())) {
-			throw new GeneralException(OrderErrorStatus.ORDER_PRICE_MISMATCH);
-		}
-
-
-		List<StockRequest> stockRequests = cartItems.stream()
-			.map(StockRequest::from)
-			.toList();
-
-		ApiResponse<Boolean> stockCheckResponse;
-		try{
-			stockCheckResponse=decreaseStockWithCircuitBreaker(stockRequests);
-		}catch (HttpServerErrorException|HttpClientErrorException e){
-			log.error("Store Service Error: {}", e.getResponseBodyAsString());
-			throw new GeneralException(ErrorStatus._INTERNAL_SERVER_ERROR);
-		}
-
-		if(!stockCheckResponse.result()){
-			throw new GeneralException(OrderErrorStatus.OUT_OF_STOCK);
-		}
 
 		Orders order = Orders.builder()
 			.userId(userId)
-			.storeId(storeId)
+			.storeId(cartItems.get(0).getStoreId())
 			.paymentMethod(request.getPaymentMethod())
 			.orderChannel(request.getOrderChannel())
 			.receiptMethod(request.getReceiptMethod())
@@ -141,23 +95,52 @@ public class OrderService {
 			.isRefundable(true)
 			.build();
 
-		Orders savedOrder = ordersRepository.save(order);
 
-		for (RedisCartItem cartItem : cartItems) {
-			MenuInfoResponse menu = menuMap.get(cartItem.getMenuId());
+		Orders orders= ordersRepository.save(order);
 
-			OrderItem orderItem = OrderItem.builder()
-				.orders(savedOrder)
-				.menuName(menu.getName())
-				.price(menu.getPrice())
-				.quantity(cartItem.getQuantity())
-				.build();
-			orderItemRepository.save(orderItem);
+
+		Map<String, Object> payload = new HashMap<>();
+		payload.put("userId", userId);
+		payload.put("orderId", orders.getOrdersId());
+		payload.put("totalPrice", orders.getTotalPrice());
+
+		String payloadJson;
+		try {
+			payloadJson = objectMapper.writeValueAsString(payload);
+		} catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+			throw new GeneralException(ErrorStatus._INTERNAL_SERVER_ERROR);
 		}
 
-		orderDelayService.scheduleRefundDisable(savedOrder.getOrdersId());
+		outboxRepository.save(
+			Outbox.pending(
+				orders.getOrdersId().toString(),
+				orderValidTopic,
+				"OrderValidEvent",
+				payloadJson
+			)
+		);
 
-		return savedOrder.getOrdersId();
+		Map<String, Object> payloadDev = new HashMap<>();
+		payloadDev.put("storeId", orders.getStoreId());
+		payloadDev.put("totalPrice", orders.getTotalPrice());
+		String payloadJsonDev;
+		try {
+			payloadJsonDev = objectMapper.writeValueAsString(payloadDev);
+		} catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+			throw new GeneralException(ErrorStatus._INTERNAL_SERVER_ERROR);
+		}
+
+		outboxRepository.save(
+			Outbox.pending(
+				orders.getOrdersId().toString(),
+				orderCreateTopicDev,
+				"OrderDevCreateEvent",
+				payloadJsonDev
+			)
+		);
+
+		orderDelayService.scheduleRefundDisable(order.getOrdersId());
+		return orders.getOrdersId();
 	}
 
 	@CircuitBreaker(name = "test")

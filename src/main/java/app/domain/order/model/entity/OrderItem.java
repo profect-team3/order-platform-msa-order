@@ -31,10 +31,10 @@ public class OrderItem extends BaseEntity {
 	@JoinColumn(name = "orders_id", nullable = false)
 	private Orders orders;
 
-	@Column(nullable = false, length = 100)
+	@Column(length = 100)
 	private String menuName;
 
-	@Column(nullable = false)
+	@Column
 	private Long price;
 
 	@Column(nullable = false)

@@ -17,6 +17,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -59,6 +60,7 @@ public class Orders extends BaseEntity {
 	@Enumerated(EnumType.STRING)
 	private OrderStatus orderStatus;
 
+
 	@Column(nullable = false)
 	private boolean isRefundable;
 
@@ -84,6 +86,7 @@ public class Orders extends BaseEntity {
 	public void updateOrderStatus(OrderStatus orderStatus) {
 		this.orderStatus = orderStatus;
 	}
+
 
 	public void addHistory(String state, LocalDateTime dateTime) {
 		String newEntry = state + ":" + dateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
