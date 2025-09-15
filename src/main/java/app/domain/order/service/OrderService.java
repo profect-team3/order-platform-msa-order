@@ -68,9 +68,6 @@ public class OrderService {
 	private String orderValidTopic;
 
 
-	@Value("${topics.order.dev.completed}")
-	private String orderCreateTopicDev;
-
 	@Transactional
 	public UUID createOrder(Authentication authentication, CreateOrderRequest request) {
 		String userIdStr = tokenPrincipalParser.getUserId(authentication);
@@ -117,25 +114,6 @@ public class OrderService {
 				orderValidTopic,
 				"OrderValidEvent",
 				payloadJson
-			)
-		);
-
-		Map<String, Object> payloadDev = new HashMap<>();
-		payloadDev.put("storeId", orders.getStoreId());
-		payloadDev.put("totalPrice", orders.getTotalPrice());
-		String payloadJsonDev;
-		try {
-			payloadJsonDev = objectMapper.writeValueAsString(payloadDev);
-		} catch (com.fasterxml.jackson.core.JsonProcessingException e) {
-			throw new GeneralException(ErrorStatus._INTERNAL_SERVER_ERROR);
-		}
-
-		outboxRepository.save(
-			Outbox.pending(
-				orders.getOrdersId().toString(),
-				orderCreateTopicDev,
-				"OrderDevCreateEvent",
-				payloadJsonDev
 			)
 		);
 
