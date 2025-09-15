@@ -49,7 +49,6 @@ public class DltReprocessor {
 			String exClass = getHeader(rec, KafkaHeaders.DLT_EXCEPTION_FQCN);
 			String exMsg   = getHeader(rec, KafkaHeaders.DLT_EXCEPTION_MESSAGE);
 			String orderId = getHeader(rec, "orderId");
-			System.out.println(rec.partition()+"fdfasdfadfadfa"+rec.offset());
 			Integer oPart = getIntHeader(rec, DLT_ORIGINAL_PARTITION, ORIGINAL_PARTITION);
 			Long    oOff  = getLongHeader(rec, DLT_ORIGINAL_OFFSET,    ORIGINAL_OFFSET);
 
