@@ -26,7 +26,10 @@ public class KafkaTopicConfig {
 	@Value("${topics.payment.result}")         private String tPaymentResult;
 	@Value("${topics.stock.request}")          private String tStockRequest;
 	@Value("${topics.stock.result}")           private String tStockResult;
+	@Value("${topics.order.dev.completed}")    private String tOrderDevCompleted;
 
+	@Bean NewTopic orderCompletedDev() {return base(tOrderDevCompleted); }
+	@Bean NewTopic orderCompletedDevDLT() {return dlt(tOrderDevCompleted); }
 
 	@Bean NewTopic orderCreateRequested() { return base(tOrderCreateRequested); }
 	@Bean NewTopic orderCreateRequestedDLT() { return dlt(tOrderCreateRequested); }
