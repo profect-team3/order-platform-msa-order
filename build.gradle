@@ -24,7 +24,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-batch'
-
+    implementation 'net.logstash.logback:logstash-logback-encoder:7.4'
     // db
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
@@ -37,7 +37,7 @@ dependencies {
     implementation 'org.redisson:redisson-spring-boot-starter:3.24.3'
 
     // security
-    implementation files('libs/msa-common-util-1.0.2-plain.jar')
+    implementation files('libs/msa-common-util-1.0.4-plain.jar')
     implementation "org.springframework.boot:spring-boot-starter-security"
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
 
@@ -54,6 +54,10 @@ dependencies {
     // lombok
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
+
+    //kafka
+    implementation 'org.springframework.kafka:spring-kafka'
+
 
     // test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
