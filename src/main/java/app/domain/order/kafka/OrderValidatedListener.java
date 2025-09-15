@@ -120,7 +120,6 @@ public class OrderValidatedListener {
 			payload.add(map);
 		}
 
-		cartRedisService.clearCartItems(userId);
 
 		String payloadJson;
 		try {
@@ -163,7 +162,7 @@ public class OrderValidatedListener {
 				}
 				order.updateOrderStatus(OrderStatus.FAILED);
 				ordersRepo.save(order);
-				emitOrderCanceled(order);
+				emitOrderCanceled(order,true);
 			}
 
 		}
@@ -177,6 +176,7 @@ public class OrderValidatedListener {
 		Orders order = ordersRepo.findById(UUID.fromString(orderIdStr))
 			.orElseThrow(() -> new GeneralException(ErrorStatus.ORDER_NOT_FOUND));
 		if ("success".equals(eventType)) {
+			cartRedisService.clearCartItems(order.getUserId());
 			order.updateOrderStatus(OrderStatus.ACCEPTED);
 			ordersRepo.save(order);
 			Map<String, Object> payload = new HashMap<>();
@@ -190,7 +190,6 @@ public class OrderValidatedListener {
 			} catch (com.fasterxml.jackson.core.JsonProcessingException e) {
 				throw new GeneralException(ErrorStatus._INTERNAL_SERVER_ERROR);
 			}
-
 			outboxRepository.save(
 				Outbox.pending(
 					order.getOrdersId().toString(),
@@ -203,28 +202,57 @@ public class OrderValidatedListener {
 			if (order.getOrderStatus() != OrderStatus.REJECTED) {
 				order.updateOrderStatus(OrderStatus.REJECTED);
 				ordersRepo.save(order);
-				emitOrderCanceled(order);
+				emitOrderCanceled(order,false);
 			}
 		}
 	}
 
-	private void emitOrderCanceled(Orders order) {
-		Map<String, Object> payload = Map.of(
-			"userId", order.getUserId()
-		);
-		try {
-			String payLoadJson = objectMapper.writeValueAsString(payload);
-			outboxRepository.save(
-				Outbox.pending(
-					order.getOrdersId().toString(),
-					orderCanceledTopic,
-					"orderCancelEvent",
-					payLoadJson
-				)
+	private void emitOrderCanceled(Orders order, boolean status) {
+		if(status){
+			Map<String, Object> payload = Map.of(
+				"userId", order.getUserId()
 			);
-		} catch (JsonProcessingException e) {
-			throw new GeneralException(ErrorStatus._INTERNAL_SERVER_ERROR);
+			try {
+				String payLoadJson = objectMapper.writeValueAsString(payload);
+				outboxRepository.save(
+					Outbox.pending(
+						order.getOrdersId().toString(),
+						orderCanceledTopic,
+						"orderCancelEvent",
+						payLoadJson
+					)
+				);
+			} catch (JsonProcessingException e) {
+				throw new GeneralException(ErrorStatus._INTERNAL_SERVER_ERROR);
+			}
+		}else{
+			List<RedisCartItem> cartItems= cartRedisService.getCartFromRedis(order.getUserId());
+			List<Map<String, Object>> payload = new ArrayList<>();
+
+			for (RedisCartItem item : cartItems) {
+				Map<String, Object> map = new HashMap<>();
+				map.put("menuId", item.getMenuId());
+				map.put("quantity", item.getQuantity());
+				payload.add(map);
+			}
+			cartRedisService.clearCartItems(order.getUserId());
+			try {
+				String payLoadJson = objectMapper.writeValueAsString(payload);
+				outboxRepository.save(
+					Outbox.pending(
+						order.getOrdersId().toString(),
+						orderCanceledTopic,
+						"orderCanceledEventWithOrderItem",
+						payLoadJson
+					)
+				);
+			} catch (JsonProcessingException e) {
+				throw new GeneralException(ErrorStatus._INTERNAL_SERVER_ERROR);
+			}
+
 		}
+
+
 	}
 
 
