@@ -38,7 +38,7 @@ dependencies {
     implementation 'org.redisson:redisson-spring-boot-starter:3.24.3'
 
     // security
-    implementation files('libs/msa-common-util-1.0.2-plain.jar')
+    implementation files('libs/msa-common-util-1.0.4-plain.jar')
     implementation "org.springframework.boot:spring-boot-starter-security"
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
 

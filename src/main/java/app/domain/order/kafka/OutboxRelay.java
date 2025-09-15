@@ -1,6 +1,10 @@
 package app.domain.order.kafka;
 
+import app.commonUtil.apiPayload.code.status.ErrorStatus;
+import app.commonUtil.apiPayload.exception.GeneralException;
 import app.domain.order.kafka.repository.OutboxRepository;
+import app.domain.order.model.entity.Orders;
+import app.domain.order.model.repository.OrdersRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -11,10 +15,12 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.UUID;
 
 import net.bytebuddy.asm.Advice;
 
@@ -25,6 +31,7 @@ public class OutboxRelay {
 
 	private final OutboxRepository outboxRepository;
 	private final KafkaTemplate<String, String> kafka;
+	private final OrdersRepository ordersRepository;
 
 	@Value("${outbox.relay.batch-size:200}")
 	private int batchSize;
@@ -43,6 +50,12 @@ public class OutboxRelay {
 					new ProducerRecord<>(e.getTopic(), e.getPayloadJson());
 
 				record.headers().add(new RecordHeader("orderId", e.getAggregateId().getBytes()));
+				if ("orderCanceledEventWithOrderItem".equals(e.getEventType())) {
+					Orders order=ordersRepository.findById(UUID.fromString(e.getAggregateId())).orElseThrow(
+						() -> new GeneralException(ErrorStatus._INTERNAL_SERVER_ERROR)
+					);
+					record.headers().add(new RecordHeader("userId", order.getUserId().toString().getBytes()));
+				}
 
 				kafka.send(record).get();
 
