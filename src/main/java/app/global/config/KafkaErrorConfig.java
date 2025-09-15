@@ -1,52 +1,56 @@
 package app.global.config;
 
+import java.net.SocketTimeoutException;
+
+import app.commonUtil.apiPayload.exception.GeneralException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.kafka.common.TopicPartition;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
-import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
 import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.kafka.support.ExponentialBackOffWithMaxRetries;
 
+
+@Slf4j
 @Configuration
 @RequiredArgsConstructor
 public class KafkaErrorConfig {
 
-	private final KafkaTemplate<Object, Object> template;
+	private final KafkaTemplate<String, String> template;
 
 	@Bean
 	public DefaultErrorHandler defaultErrorHandler() {
-		// 지수 백오프: 200ms → 5s, 최대 3회 재시도
-		ExponentialBackOffWithMaxRetries backoff = new ExponentialBackOffWithMaxRetries(3);
+		var backoff = new ExponentialBackOffWithMaxRetries(3);
 		backoff.setInitialInterval(200);
 		backoff.setMultiplier(2.0);
 		backoff.setMaxInterval(5000);
 
-		// DLT 라우팅: <원토픽>.DLT
-		DeadLetterPublishingRecoverer recoverer = new DeadLetterPublishingRecoverer(
+
+		var recoverer = new DeadLetterPublishingRecoverer(
 			template,
-			(record, ex) -> new TopicPartition(record.topic() + ".DLT", record.partition())
+			(record, ex) -> {
+			 return new TopicPartition(record.topic() + ".DLT", record.partition());
+			}
+		);
+		var handler = new DefaultErrorHandler(recoverer, backoff);
+
+		handler.addNotRetryableExceptions(
+			IllegalArgumentException.class,
+			GeneralException.class
 		);
 
-		DefaultErrorHandler handler = new DefaultErrorHandler(recoverer, backoff);
+		handler.addRetryableExceptions(SocketTimeoutException.class);
 
-		// 재시도해도 의미 없는 예외는 즉시 DLT
-		handler.addNotRetryableExceptions(
-			IllegalArgumentException.class
+		handler.setRetryListeners((rec, ex, deliveryAttempt) ->
+			log.warn("Retry {}/3 topic={} key={} err={}",
+				deliveryAttempt, rec.topic(), rec.key(), ex.toString())
 		);
 
 		return handler;
 	}
 
-	@Bean
-	public ConcurrentKafkaListenerContainerFactory<Object, Object> kafkaListenerContainerFactory(
-		ConsumerFactory<Object, Object> cf) {
-		var f = new ConcurrentKafkaListenerContainerFactory<Object, Object>();
-		f.setConsumerFactory(cf);
-		f.setCommonErrorHandler(defaultErrorHandler());
-		return f;
-	}
 }
