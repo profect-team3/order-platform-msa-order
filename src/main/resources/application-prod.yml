@@ -7,13 +7,13 @@ spring:
 
   data:
     mongodb:
-      uri: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@${MONGO_HOST}:27017/?tls=false&replicaSet=rs0&readPreference=secondaryPreferred&retryWrites=false
+      uri: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@${MONGO_HOST}:27017/?ssl=false&replicaSet=rs0&readPreference=secondaryPreferred&retryWrites=false&connectTimeoutMS=60000&socketTimeoutMS=60000&serverSelectionTimeoutMS=60000
       database: ${MONGO_NAME}
 
     redis:
+      protocol: ${REDIS_PROTOCOL}
       host: ${REDIS_HOST}
       port: ${REDIS_PORT}
-      password: ${REDIS_PASSWORD}
       database: 0
 
   security:
@@ -22,8 +22,30 @@ spring:
         jwt:
           jwk-set-uri: ${OAUTH_JWKS_URI}
 
+  kafka:
+    bootstrap-servers: ${KAFKA_URL}
+    consumer:
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      auto-offset-reset: earliest
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      enable-idempotence: true
+      retries: 2
+      acks: all
+      properties:
+        max.in.flight.requests.per.connection: 3
+        min.insync.replicas: 2
+    admin:
+      auto-create: true
+    properties:
+      request.timeout.ms: 60000
+      session.timeout.ms: 60000
+      heartbeat.interval.ms: 20000
+
 jwt:
-  audience:  ${AUTH_INTERNAL_AUDIENCE}
+  audience: ${AUTH_INTERNAL_AUDIENCE}
 
 discord:
   webhook:
@@ -36,3 +58,18 @@ service:
 redis:
   refund:
     queue: ${REDIS_REFUND_QUEUE}
+
+topics:
+  order:
+    create_requested: order.valid.request
+    validated: order.valid.result
+    canceled: refund.request
+    approve: order.approve.result
+    completed: order.completed
+    dev:
+      completed: dev.order.completed
+  payment:
+    result: payment.result
+  stock:
+    request: stock.request
+    result: stock.result

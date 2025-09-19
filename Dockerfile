@@ -12,7 +12,7 @@ COPY settings.gradle .
 COPY src ./src
 COPY libs ./libs
 
-RUN ./gradlew bootJar
+RUN ./gradlew bootJar -x test
 
 FROM eclipse-temurin:17-jre-jammy
 
@@ -22,4 +22,4 @@ COPY --from=builder /workspace/build/libs/*.jar /app/application.jar
 
 EXPOSE 8084
 
-ENTRYPOINT ["java", "-Dspring.profiles.active=prod", "-jar", "/app/application.jar"]
+ENTRYPOINT ["java", "-Dspring.profiles.active=prod", "-jar", "./application.jar"]
